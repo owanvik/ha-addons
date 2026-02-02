@@ -22,7 +22,7 @@ import logging
 import socket
 from typing import Dict, Any, Optional
 
-__version__ = "1.3.3"
+__version__ = "1.3.4"
 
 # ============================================================================
 # EMBEDDED CERTIFICATES - Standard RemoteNOW certs (same for all Hisense TVs)
@@ -466,8 +466,12 @@ class HisenseBridge:
         self.ha_client.on_message = self.on_ha_message
         
         logger.info(f"🔄 Connecting to TV at {self.tv_ip}...")
-        self.tv_client.loop_start()  # Start loop once
-        self.connect_to_tv()
+        # Try initial connection - if TV is off, we'll retry in the main loop
+        if self.connect_to_tv():
+            self.tv_client.loop_start()
+        else:
+            # TV not available - start loop but it won't reconnect until connect() is called
+            logger.info("📺 TV not available, will retry when TV comes online")
         
         time.sleep(2)
         
@@ -486,6 +490,7 @@ class HisenseBridge:
         
         try:
             last_check = time.time()
+            tv_loop_started = self.tv_connected  # Track if TV loop is running
             while not self._stop_event:
                 time.sleep(1)
                 
@@ -495,7 +500,10 @@ class HisenseBridge:
                     
                     if not self.tv_connected:
                         logger.info(f"🔄 TV offline, attempting reconnect...")
-                        self.connect_to_tv()
+                        if self.connect_to_tv():
+                            if not tv_loop_started:
+                                self.tv_client.loop_start()
+                                tv_loop_started = True
                     elif self.tv_client and self.tv_client.is_connected():
                         # Request volume to verify connection and update state
                         self.tv_client.publish(self.tv_topic("platform_service", "getvolume"), "")
@@ -507,13 +515,15 @@ class HisenseBridge:
         """Attempt to connect to TV with error handling."""
         try:
             if test_tv_connection(self.tv_ip, self.tv_port):
-                # Only call connect - loop is already started
                 self.tv_client.connect(self.tv_ip, self.tv_port, 60)
                 logger.info(f"📺 Connection attempt initiated")
+                return True
             else:
                 logger.debug(f"📺 TV not reachable at {self.tv_ip}:{self.tv_port}")
+                return False
         except Exception as e:
             logger.debug(f"📺 Connection error: {e}")
+            return False
     
     def stop(self):
         logger.info("\n👋 Stopping...")
