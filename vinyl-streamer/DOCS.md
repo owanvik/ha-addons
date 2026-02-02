@@ -2,6 +2,23 @@
 
 Stream audio from USB input (vinyl player, turntable, cassette deck, etc.) to your network via Icecast. Perfect for whole-home vinyl listening with Music Assistant!
 
+## Requirements
+
+You need a USB audio interface (sound card) to connect your vinyl player to Home Assistant.
+
+### Supported USB Audio Devices
+
+| Device | Notes |
+|--------|-------|
+| **Behringer U-Phono UFO202** | Built-in phono preamp, perfect for turntables |
+| **Behringer UCA202/UCA222** | Line-level input, needs external preamp |
+| **Burr-Brown USB Audio CODEC** | Generic TI chipset, widely compatible |
+| **Creative Sound Blaster Play!** | Compact, works well |
+
+Most USB audio devices with standard UAC (USB Audio Class) drivers work. Avoid devices requiring proprietary drivers.
+
+**Tip:** If your turntable has a built-in preamp (phono/line switch), set it to "line" and use any USB interface. Otherwise, use one with built-in phono preamp like the UFO202.
+
 ## Features
 
 - **Bundled Icecast + FFmpeg** - No separate setup needed
@@ -55,6 +72,64 @@ Now you can play vinyl on any room/speaker via Music Assistant!
 ## On-Demand Streaming (Save Resources)
 
 To save resources, you can start/stop the add-on on demand instead of running it constantly.
+
+### Automation Examples
+
+#### Start streaming when turntable powers on
+
+If you have a smart plug monitoring your turntable:
+
+```yaml
+automation:
+  - alias: "Start vinyl stream when turntable on"
+    trigger:
+      - platform: state
+        entity_id: switch.turntable_plug
+        to: "on"
+    action:
+      - service: hassio.addon_start
+        data:
+          addon: local_vinyl-streamer
+
+  - alias: "Stop vinyl stream when turntable off"
+    trigger:
+      - platform: state
+        entity_id: switch.turntable_plug
+        to: "off"
+        for:
+          minutes: 5
+    action:
+      - service: hassio.addon_stop
+        data:
+          addon: local_vinyl-streamer
+```
+
+#### Start/stop with a physical button
+
+Using a Zigbee/Z-Wave button:
+
+```yaml
+automation:
+  - alias: "Toggle vinyl stream with button"
+    trigger:
+      - platform: state
+        entity_id: sensor.vinyl_button_action
+        to: "single"
+    action:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: switch.vinyl_streamer
+                state: "on"
+            sequence:
+              - service: hassio.addon_stop
+                data:
+                  addon: local_vinyl-streamer
+        default:
+          - service: hassio.addon_start
+            data:
+              addon: local_vinyl-streamer
+```
 
 ### Option 1: Template Switch
 
