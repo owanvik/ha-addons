@@ -10,6 +10,7 @@ RUN apk add --no-cache \
     alsa-plugins-pulse \
     pulseaudio-utils \
     lame \
+    mailcap \
     bash
 
 # Create directories

@@ -43,6 +43,12 @@ pactl list sources short 2>/dev/null | while read -r line; do
     bashio::log.info "  $line"
 done || true
 
+# Get HA IP address for hostname
+HA_IP=$(bashio::network.ipv4_address | head -n1 | cut -d'/' -f1)
+if [ -z "$HA_IP" ]; then
+    HA_IP="localhost"
+fi
+
 # Generate Icecast configuration
 cat > /etc/icecast/icecast.xml << EOF
 <icecast>
@@ -64,7 +70,7 @@ cat > /etc/icecast/icecast.xml << EOF
         <admin-user>admin</admin-user>
         <admin-password>${ICECAST_PASSWORD}</admin-password>
     </authentication>
-    <hostname>localhost</hostname>
+    <hostname>${HA_IP}</hostname>
     <listen-socket>
         <port>8000</port>
     </listen-socket>
