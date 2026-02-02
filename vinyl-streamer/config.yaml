@@ -1,6 +1,6 @@
 name: "Vinyl Streamer"
 description: "Stream audio from USB input to Icecast (FFmpeg + Icecast)"
-version: "1.3.1"
+version: "1.3.2"
 slug: "vinyl-streamer"
 init: false
 arch:
@@ -24,7 +24,6 @@ options:
   station_name: "Vinyl Radio"
   station_description: "Streaming from vinyl player"
   mount_point: "/vinyl"
-  audio_input: "default"
   audio_samplerate: 44100
   audio_channels: 2
   audio_bitrate: 320
@@ -33,7 +32,6 @@ schema:
   station_name: str
   station_description: str
   mount_point: str
-  audio_input: str
   audio_samplerate: int
   audio_channels: int(1,2)
   audio_bitrate: int

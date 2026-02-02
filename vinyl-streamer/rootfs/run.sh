@@ -15,9 +15,9 @@ AUDIO_CHANNELS=$(bashio::config 'audio_channels')
 AUDIO_BITRATE=$(bashio::config 'audio_bitrate')
 ICECAST_PASSWORD=$(bashio::config 'icecast_password')
 
-# Get audio input from HA audio selector (returns PulseAudio source name)
-if bashio::config.has_value 'audio_input'; then
-    AUDIO_DEVICE=$(bashio::config 'audio_input')
+# Get audio input from HA's built-in audio selector (Lyd section)
+if bashio::var.has_value "$(bashio::addon.audio_input)"; then
+    AUDIO_DEVICE=$(bashio::addon.audio_input)
 else
     AUDIO_DEVICE="default"
 fi
