@@ -192,8 +192,14 @@ start_ffmpeg_encoder() {
 start_ffmpeg_encoder &
 FFMPEG_PID=$!
 
+# Get HA IP address for display
+HA_IP=$(bashio::network.ipv4_address | head -1 | cut -d'/' -f1)
+if [ -z "${HA_IP}" ]; then
+    HA_IP="[YOUR_HA_IP]"
+fi
+
 bashio::log.info "Vinyl Streamer is running!"
-bashio::log.info "Stream URL: http://[YOUR_HA_IP]:8000${MOUNT_POINT}"
+bashio::log.info "Stream URL: http://${HA_IP}:8000${MOUNT_POINT}"
 
 # Trap signals for clean shutdown
 cleanup() {
