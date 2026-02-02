@@ -17,5 +17,8 @@ Stream audio from USB input (vinyl player, etc.) to Icecast.
 - Auto-restart on failure
 - Music Assistant compatible
 
-### 📺 [Hisense TV MQTT Bridge](hisense-tv-mqtt/) *(coming soon)*
+### 📺 [Hisense TV MQTT Bridge](hisense-tv-mqtt/)
 Control Hisense VIDAA TVs via MQTT/Home Assistant.
+- Power, volume, source, channel control
+- Media player integration
+- Auto-discovery via MQTT
