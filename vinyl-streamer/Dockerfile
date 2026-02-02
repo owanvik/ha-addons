@@ -8,6 +8,8 @@ RUN apk add --no-cache \
     ffmpeg \
     alsa-utils \
     alsa-lib \
+    alsa-plugins-pulse \
+    pulseaudio-utils \
     lame \
     bash
 
