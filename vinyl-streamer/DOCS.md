@@ -52,6 +52,86 @@ This is the recommended way to stream vinyl throughout your home:
 
 Now you can play vinyl on any room/speaker via Music Assistant!
 
+## On-Demand Streaming (Save Resources)
+
+To save resources, you can start/stop the add-on on demand instead of running it constantly.
+
+### Option 1: Template Switch
+
+Add this to your `configuration.yaml`:
+
+```yaml
+switch:
+  - platform: template
+    switches:
+      vinyl_streamer:
+        friendly_name: "Vinyl Streamer"
+        icon_template: mdi:record-player
+        value_template: >
+          {{ is_state('binary_sensor.vinyl_streamer_running', 'on') }}
+        turn_on:
+          service: hassio.addon_start
+          data:
+            addon: local_vinyl-streamer
+        turn_off:
+          service: hassio.addon_stop
+          data:
+            addon: local_vinyl-streamer
+
+binary_sensor:
+  - platform: template
+    sensors:
+      vinyl_streamer_running:
+        friendly_name: "Vinyl Streamer Running"
+        value_template: >
+          {{ is_state_attr('update.vinyl_streamer_update', 'installed_version', state_attr('update.vinyl_streamer_update', 'installed_version')) }}
+```
+
+**Note:** Replace `local_vinyl-streamer` with your add-on's slug. Find it in the add-on URL or run `ha addons` in SSH.
+
+### Option 2: Automation Button
+
+Create a button that toggles the add-on:
+
+```yaml
+script:
+  toggle_vinyl_stream:
+    sequence:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.vinyl_streamer_running
+                state: 'on'
+            sequence:
+              - service: hassio.addon_stop
+                data:
+                  addon: local_vinyl-streamer
+        default:
+          - service: hassio.addon_start
+            data:
+              addon: local_vinyl-streamer
+```
+
+### Option 3: Dashboard Button
+
+Add a simple start/stop button to your dashboard:
+
+```yaml
+type: button
+name: Start Vinyl
+icon: mdi:record-player
+tap_action:
+  action: call-service
+  service: hassio.addon_start
+  data:
+    addon: local_vinyl-streamer
+hold_action:
+  action: call-service
+  service: hassio.addon_stop
+  data:
+    addon: local_vinyl-streamer
+```
+
 ## Testing the Stream
 
 You can test the stream in any of these ways:

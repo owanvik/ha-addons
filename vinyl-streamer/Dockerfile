@@ -2,7 +2,6 @@ ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
 # Install Icecast and audio tools
-# Note: darkice is not in Alpine repos, using ffmpeg instead
 RUN apk add --no-cache \
     icecast \
     ffmpeg \
@@ -10,7 +9,6 @@ RUN apk add --no-cache \
     alsa-lib \
     alsa-plugins-pulse \
     pulseaudio-utils \
-    mosquitto-clients \
     lame \
     bash
 

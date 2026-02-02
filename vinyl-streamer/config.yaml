@@ -1,6 +1,6 @@
 name: "Vinyl Streamer"
 description: "Stream audio from USB input to Icecast (FFmpeg + Icecast)"
-version: "1.4.0"
+version: "1.4.1"
 slug: "vinyl-streamer"
 init: false
 arch:
@@ -28,11 +28,6 @@ options:
   audio_channels: 2
   audio_bitrate: 320
   icecast_password: "hackme"
-  auto_start: false
-  mqtt_host: "core-mosquitto"
-  mqtt_port: 1883
-  mqtt_username: ""
-  mqtt_password: ""
 schema:
   station_name: str
   station_description: str
@@ -41,8 +36,3 @@ schema:
   audio_channels: int(1,2)
   audio_bitrate: int
   icecast_password: str
-  auto_start: bool
-  mqtt_host: str
-  mqtt_port: port
-  mqtt_username: str?
-  mqtt_password: str?
