@@ -1,8 +1,12 @@
 # Home Assistant Add-ons
 
-Custom add-ons for Home Assistant.
-
 [![Add Repository](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fowanvik%2Fha-addons)
+[![GitHub stars](https://img.shields.io/github/stars/owanvik/ha-addons?style=social)](https://github.com/owanvik/ha-addons)
+[![License](https://img.shields.io/github/license/owanvik/ha-addons)](LICENSE)
+
+Custom Home Assistant Supervisor add-ons for audio streaming, smart TV control, and home automation.
+
+**Keywords:** Home Assistant, Add-ons, Supervisor, Vinyl Streaming, Turntable, Icecast, Music Assistant, Hisense TV, VIDAA, MQTT, Smart Home, Audio Streaming, Multi-room Audio
 
 ## Installation
 
@@ -55,3 +59,15 @@ Control Hisense VIDAA Smart TVs via MQTT and Home Assistant.
 **Requirements:**
 - Hisense TV with VIDAA OS
 - MQTT broker (e.g., Mosquitto)
+
+---
+
+## Support
+
+- 🐛 [Report a bug](https://github.com/owanvik/ha-addons/issues)
+- 💡 [Request a feature](https://github.com/owanvik/ha-addons/issues)
+- ⭐ Star this repo if you find it useful!
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.
