@@ -23,7 +23,7 @@ Control your Hisense Smart TV from Home Assistant via MQTT.
 
 1. In Home Assistant, go to **Settings → Add-ons → Add-on Store**
 2. Click the three dots menu → **Repositories**
-3. Add: `https://github.com/owanvik/hisense-mqtt-bridge`
+3. Add: `https://github.com/owanvik/ha-addons`
 4. Find "Hisense TV MQTT Bridge" and click **Install**
 
 ### Method 2: Local Add-on
@@ -65,7 +65,7 @@ volume_max: 30
 
 ## Support
 
-- [GitHub Issues](https://github.com/owanvik/hisense-mqtt-bridge/issues)
+- [GitHub Issues](https://github.com/owanvik/ha-addons/issues)
 
 [aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
 [amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
