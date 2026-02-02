@@ -22,6 +22,18 @@ bashio::log.info "Mount: ${MOUNT_POINT}"
 bashio::log.info "Audio device: ${AUDIO_DEVICE}"
 bashio::log.info "Bitrate: ${AUDIO_BITRATE}kbps"
 
+# Create icecast user and group for running as non-root
+addgroup -S icecast 2>/dev/null || true
+adduser -S -G icecast -h /usr/share/icecast -s /sbin/nologin icecast 2>/dev/null || true
+
+# Ensure log directory exists and is writable
+mkdir -p /var/log/icecast
+chown -R icecast:icecast /var/log/icecast
+
+# Ensure config directory is accessible
+mkdir -p /etc/icecast
+chown -R icecast:icecast /etc/icecast
+
 # List available audio devices for debugging
 bashio::log.info "Available audio devices:"
 arecord -l || bashio::log.warning "Could not list audio devices"
@@ -82,6 +94,10 @@ cat > /etc/icecast/icecast.xml << EOF
 
     <security>
         <chroot>0</chroot>
+        <changeowner>
+            <user>icecast</user>
+            <group>icecast</group>
+        </changeowner>
     </security>
 </icecast>
 EOF
