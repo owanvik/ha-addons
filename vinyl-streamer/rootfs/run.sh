@@ -40,9 +40,11 @@ chown -R icecast:icecast /var/log/icecast
 mkdir -p /etc/icecast
 chown -R icecast:icecast /etc/icecast
 
-# List available audio devices for debugging
-bashio::log.info "Available audio devices:"
-arecord -l || bashio::log.warning "Could not list audio devices"
+# List available PulseAudio sources for debugging
+bashio::log.info "Available PulseAudio sources (use one of these for audio_input):"
+pactl list sources short 2>/dev/null | while read -r line; do
+    bashio::log.info "  $line"
+done || bashio::log.warning "Could not list PulseAudio sources"
 
 # Generate Icecast configuration
 cat > /etc/icecast/icecast.xml << EOF
