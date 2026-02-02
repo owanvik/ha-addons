@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0] - 2026-02-02
+
+### Changed
+- Replaced Darkice with FFmpeg (more portable, available in Alpine repos)
+- Fixed Icecast paths for Alpine Linux
+- Added clean shutdown handling
+
 ## [1.0.0] - 2026-02-02
 
 ### Added

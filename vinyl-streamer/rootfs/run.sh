@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv bashio
 # ==============================================================================
 # Vinyl Streamer - Run Script
-# Starts Icecast server and Darkice encoder
+# Starts Icecast server and FFmpeg encoder
 # ==============================================================================
 
 set -e
@@ -27,7 +27,7 @@ bashio::log.info "Available audio devices:"
 arecord -l || bashio::log.warning "Could not list audio devices"
 
 # Generate Icecast configuration
-cat > /etc/icecast2/icecast.xml << EOF
+cat > /etc/icecast/icecast.xml << EOF
 <icecast>
     <location>Home</location>
     <admin>admin@localhost</admin>
@@ -68,7 +68,7 @@ cat > /etc/icecast2/icecast.xml << EOF
 
     <paths>
         <basedir>/usr/share/icecast</basedir>
-        <logdir>/var/log/icecast2</logdir>
+        <logdir>/var/log/icecast</logdir>
         <webroot>/usr/share/icecast/web</webroot>
         <adminroot>/usr/share/icecast/admin</adminroot>
     </paths>
@@ -86,39 +86,9 @@ cat > /etc/icecast2/icecast.xml << EOF
 </icecast>
 EOF
 
-# Generate Darkice configuration
-cat > /etc/darkice/darkice.cfg << EOF
-# Darkice configuration for Vinyl Streamer
-# Auto-generated - do not edit manually
-
-[general]
-duration        = 0
-bufferSecs      = 5
-reconnect       = yes
-
-[input]
-device          = ${AUDIO_DEVICE}
-sampleRate      = ${AUDIO_SAMPLERATE}
-bitsPerSample   = 16
-channel         = ${AUDIO_CHANNELS}
-
-[icecast2-0]
-bitrateMode     = cbr
-format          = mp3
-bitrate         = ${AUDIO_BITRATE}
-server          = localhost
-port            = 8000
-password        = ${ICECAST_PASSWORD}
-mountPoint      = ${MOUNT_POINT}
-name            = ${STATION_NAME}
-description     = ${STATION_DESC}
-genre           = Vinyl
-public          = no
-EOF
-
 # Start Icecast in background
 bashio::log.info "Starting Icecast server..."
-icecast -c /etc/icecast2/icecast.xml &
+icecast -c /etc/icecast/icecast.xml &
 ICECAST_PID=$!
 
 # Wait for Icecast to be ready
@@ -127,42 +97,72 @@ sleep 3
 # Check if Icecast is running
 if ! kill -0 $ICECAST_PID 2>/dev/null; then
     bashio::log.error "Icecast failed to start!"
-    cat /var/log/icecast2/error.log || true
+    cat /var/log/icecast/error.log || true
     exit 1
 fi
 bashio::log.info "Icecast started on port 8000"
 
-# Function to start Darkice with retry logic
-start_darkice() {
+# Function to start FFmpeg encoder with retry logic
+start_ffmpeg_encoder() {
     while true; do
-        bashio::log.info "Starting Darkice encoder..."
+        bashio::log.info "Starting FFmpeg encoder..."
         
         # Check if audio device exists
-        if ! arecord -L | grep -q "${AUDIO_DEVICE%%,*}"; then
+        if ! arecord -L 2>/dev/null | grep -q "${AUDIO_DEVICE%%,*}"; then
             bashio::log.warning "Audio device ${AUDIO_DEVICE} not found. Waiting..."
+            bashio::log.info "Available devices:"
+            arecord -L 2>/dev/null | head -20 || true
             sleep 10
             continue
         fi
         
-        darkice -c /etc/darkice/darkice.cfg
+        # FFmpeg command to capture ALSA audio and stream to Icecast
+        # -f alsa: ALSA audio input
+        # -ac: Audio channels
+        # -ar: Audio sample rate
+        # -i: Input device
+        # -acodec libmp3lame: MP3 encoding
+        # -ab: Audio bitrate
+        # -content_type audio/mpeg: Required for Icecast
+        # -f mp3: Output format
+        ffmpeg -hide_banner -loglevel warning \
+            -f alsa \
+            -ac "${AUDIO_CHANNELS}" \
+            -ar "${AUDIO_SAMPLERATE}" \
+            -i "${AUDIO_DEVICE}" \
+            -acodec libmp3lame \
+            -ab "${AUDIO_BITRATE}k" \
+            -reservoir 0 \
+            -content_type audio/mpeg \
+            -f mp3 \
+            "icecast://source:${ICECAST_PASSWORD}@localhost:8000${MOUNT_POINT}"
         
         EXIT_CODE=$?
         if [ $EXIT_CODE -ne 0 ]; then
-            bashio::log.warning "Darkice exited with code ${EXIT_CODE}. Restarting in 5 seconds..."
+            bashio::log.warning "FFmpeg exited with code ${EXIT_CODE}. Restarting in 5 seconds..."
             sleep 5
         fi
     done
 }
 
-# Start Darkice with auto-restart
-start_darkice &
-DARKICE_PID=$!
+# Start FFmpeg encoder with auto-restart
+start_ffmpeg_encoder &
+FFMPEG_PID=$!
 
 bashio::log.info "Vinyl Streamer is running!"
 bashio::log.info "Stream URL: http://[YOUR_HA_IP]:8000${MOUNT_POINT}"
 
+# Trap signals for clean shutdown
+cleanup() {
+    bashio::log.info "Shutting down..."
+    kill $FFMPEG_PID 2>/dev/null || true
+    kill $ICECAST_PID 2>/dev/null || true
+    exit 0
+}
+trap cleanup SIGTERM SIGINT
+
 # Wait for any process to exit
-wait -n $ICECAST_PID $DARKICE_PID
+wait -n $ICECAST_PID $FFMPEG_PID
 
 # Exit with error if any process died unexpectedly
 bashio::log.error "One of the services died unexpectedly"

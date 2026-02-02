@@ -1,6 +1,6 @@
 name: "Vinyl Streamer"
-description: "Stream audio from USB input to Icecast (Darkice + Icecast bundled)"
-version: "1.0.0"
+description: "Stream audio from USB input to Icecast (FFmpeg + Icecast)"
+version: "1.1.0"
 slug: "vinyl-streamer"
 init: false
 arch:

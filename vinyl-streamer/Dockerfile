@@ -1,20 +1,20 @@
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
-# Install Icecast and Darkice
+# Install Icecast and audio tools
+# Note: darkice is not in Alpine repos, using ffmpeg instead
 RUN apk add --no-cache \
     icecast \
-    darkice \
+    ffmpeg \
     alsa-utils \
     alsa-lib \
     lame \
-    bash \
-    jq
+    bash
 
 # Create directories
-RUN mkdir -p /etc/icecast2 /etc/darkice /var/log/icecast2 /run
+RUN mkdir -p /etc/icecast /var/log/icecast /run
 
-# Copy config templates
+# Copy rootfs
 COPY rootfs /
 
 # Set permissions
