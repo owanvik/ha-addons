@@ -134,24 +134,40 @@ start_ffmpeg_encoder() {
             fi
         fi
         
-        # FFmpeg command matching user's working config
-        # -f alsa: ALSA audio input
-        # -i: Input device (can be "default" or specific like "hw:CARD=CODEC")
+        # FFmpeg command using PulseAudio for HA OS compatibility
+        # -f pulse: PulseAudio input (HA OS uses PulseAudio)
+        # -i: Input device (can be "default" or PulseAudio source name)
         # -acodec libmp3lame: MP3 encoding
         # -ab: Audio bitrate
         # -ac: Audio channels
         # -ar: Audio sample rate
-        # -sample_fmt s32p: Sample format for better quality
         # -content_type audio/mpeg: Required for Icecast
         # -f mp3: Output format
+        
+        # Determine input format and device
+        if [ "${AUDIO_DEVICE}" = "default" ]; then
+            # Use PulseAudio default source
+            INPUT_FORMAT="pulse"
+            INPUT_DEVICE="default"
+        elif echo "${AUDIO_DEVICE}" | grep -q "^alsa_input\|^alsa_output"; then
+            # PulseAudio source name provided
+            INPUT_FORMAT="pulse"
+            INPUT_DEVICE="${AUDIO_DEVICE}"
+        else
+            # ALSA device provided (hw:X,Y or plughw:X,Y)
+            INPUT_FORMAT="alsa"
+            INPUT_DEVICE="${AUDIO_DEVICE}"
+        fi
+        
+        bashio::log.info "Using ${INPUT_FORMAT} input: ${INPUT_DEVICE}"
+        
         ffmpeg -hide_banner -loglevel warning \
-            -f alsa \
-            -i "${AUDIO_DEVICE}" \
+            -f "${INPUT_FORMAT}" \
+            -i "${INPUT_DEVICE}" \
             -acodec libmp3lame \
             -ab "${AUDIO_BITRATE}k" \
             -ac "${AUDIO_CHANNELS}" \
             -ar "${AUDIO_SAMPLERATE}" \
-            -sample_fmt s32p \
             -content_type audio/mpeg \
             -f mp3 \
             "icecast://source:${ICECAST_PASSWORD}@localhost:8000${MOUNT_POINT}"
