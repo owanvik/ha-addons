@@ -13,7 +13,7 @@ Stream audio from USB input (vinyl player, turntable, cassette deck, etc.) to yo
 ## Quick Start
 
 1. **Install** the add-on
-2. **Select audio input** in the "Lyd" (Audio) section at the bottom
+2. **Select audio input** in the "Audio" section at the bottom
 3. **Start** the add-on
 4. **Copy stream URL** from the log (e.g., `http://192.168.1.50:8000/vinyl`)
 5. **Play** in Music Assistant, VLC, or any media player!
@@ -32,11 +32,11 @@ Stream audio from USB input (vinyl player, turntable, cassette deck, etc.) to yo
 
 ## Audio Input Selection
 
-Use the **"Lyd" (Audio)** section at the bottom of the add-on page:
+Use the **"Audio"** section at the bottom of the add-on page:
 
-1. Click the **Inngang** (Input) dropdown
+1. Click the **Input** dropdown
 2. Select your USB audio device (e.g., "USB Audio CODEC Analog Stereo")
-3. Click **Lagre** (Save)
+3. Click **Save**
 4. Restart the add-on
 
 ## Adding to Music Assistant
@@ -72,7 +72,7 @@ You can test the stream in any of these ways:
 
 - Verify audio is playing from the vinyl player
 - Check volume/gain on the USB interface
-- Make sure correct input is selected in "Lyd" section
+- Make sure correct input is selected in "Audio" section
 
 ### FFmpeg keeps restarting
 

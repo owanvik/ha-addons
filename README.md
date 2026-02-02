@@ -32,7 +32,7 @@ Stream audio from USB input (vinyl player, turntable, etc.) to your network via 
 
 **Quick Start:**
 1. Install add-on
-2. Select audio input in "Lyd" section (e.g., USB Audio CODEC)
+2. Select audio input in "Audio" section (e.g., USB Audio CODEC)
 3. Start add-on
 4. Stream URL shown in log: `http://[HA_IP]:8000/vinyl`
 
