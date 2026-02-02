@@ -10,6 +10,7 @@ RUN apk add --no-cache \
     alsa-lib \
     alsa-plugins-pulse \
     pulseaudio-utils \
+    mosquitto-clients \
     lame \
     bash
 
