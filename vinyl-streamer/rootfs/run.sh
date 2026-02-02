@@ -10,16 +10,22 @@ set -e
 STATION_NAME=$(bashio::config 'station_name')
 STATION_DESC=$(bashio::config 'station_description')
 MOUNT_POINT=$(bashio::config 'mount_point')
-AUDIO_DEVICE=$(bashio::config 'audio_device')
 AUDIO_SAMPLERATE=$(bashio::config 'audio_samplerate')
 AUDIO_CHANNELS=$(bashio::config 'audio_channels')
 AUDIO_BITRATE=$(bashio::config 'audio_bitrate')
 ICECAST_PASSWORD=$(bashio::config 'icecast_password')
 
+# Get audio input from HA audio selector (returns PulseAudio source name)
+if bashio::config.has_value 'audio_input'; then
+    AUDIO_DEVICE=$(bashio::config 'audio_input')
+else
+    AUDIO_DEVICE="default"
+fi
+
 bashio::log.info "Starting Vinyl Streamer..."
 bashio::log.info "Station: ${STATION_NAME}"
 bashio::log.info "Mount: ${MOUNT_POINT}"
-bashio::log.info "Audio device: ${AUDIO_DEVICE}"
+bashio::log.info "Audio input: ${AUDIO_DEVICE}"
 bashio::log.info "Bitrate: ${AUDIO_BITRATE}kbps"
 
 # Create icecast user and group for running as non-root
