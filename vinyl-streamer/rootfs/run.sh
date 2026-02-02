@@ -107,32 +107,35 @@ start_ffmpeg_encoder() {
     while true; do
         bashio::log.info "Starting FFmpeg encoder..."
         
-        # Check if audio device exists
-        if ! arecord -L 2>/dev/null | grep -q "${AUDIO_DEVICE%%,*}"; then
-            bashio::log.warning "Audio device ${AUDIO_DEVICE} not found. Waiting..."
-            bashio::log.info "Available devices:"
-            arecord -L 2>/dev/null | head -20 || true
-            sleep 10
-            continue
+        # Skip device check if using "default"
+        if [ "${AUDIO_DEVICE}" != "default" ]; then
+            if ! arecord -L 2>/dev/null | grep -q "${AUDIO_DEVICE%%,*}"; then
+                bashio::log.warning "Audio device ${AUDIO_DEVICE} not found. Waiting..."
+                bashio::log.info "Available devices:"
+                arecord -L 2>/dev/null | head -20 || true
+                sleep 10
+                continue
+            fi
         fi
         
-        # FFmpeg command to capture ALSA audio and stream to Icecast
+        # FFmpeg command matching user's working config
         # -f alsa: ALSA audio input
-        # -ac: Audio channels
-        # -ar: Audio sample rate
-        # -i: Input device
+        # -i: Input device (can be "default" or specific like "hw:CARD=CODEC")
         # -acodec libmp3lame: MP3 encoding
         # -ab: Audio bitrate
+        # -ac: Audio channels
+        # -ar: Audio sample rate
+        # -sample_fmt s32p: Sample format for better quality
         # -content_type audio/mpeg: Required for Icecast
         # -f mp3: Output format
         ffmpeg -hide_banner -loglevel warning \
             -f alsa \
-            -ac "${AUDIO_CHANNELS}" \
-            -ar "${AUDIO_SAMPLERATE}" \
             -i "${AUDIO_DEVICE}" \
             -acodec libmp3lame \
             -ab "${AUDIO_BITRATE}k" \
-            -reservoir 0 \
+            -ac "${AUDIO_CHANNELS}" \
+            -ar "${AUDIO_SAMPLERATE}" \
+            -sample_fmt s32p \
             -content_type audio/mpeg \
             -f mp3 \
             "icecast://source:${ICECAST_PASSWORD}@localhost:8000${MOUNT_POINT}"

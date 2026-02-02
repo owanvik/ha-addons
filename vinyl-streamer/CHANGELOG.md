@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.2.0] - 2026-02-02
+
+### Changed
+- Updated FFmpeg command to match user's working configuration
+- Default audio device changed to "default" (simpler)
+- Added `-sample_fmt s32p` for better audio quality
+- Removed `-reservoir 0` option
+- Skip device check when using "default" device
+
 ## [1.1.0] - 2026-02-02
 
 ### Changed
