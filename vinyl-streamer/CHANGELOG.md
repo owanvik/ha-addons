@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.8.1] - 2026-02-04
+
+### Fixed
+- Added missing audio_processing translations (may fix add-on visibility)
+
 ## [1.8.0] - 2026-02-04
 
 ### Added
