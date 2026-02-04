@@ -46,6 +46,37 @@ Most USB audio devices with standard UAC (USB Audio Class) drivers work. Avoid d
 | `audio_channels` | 1 (mono) or 2 (stereo) | 2 |
 | `audio_bitrate` | MP3 bitrate in kbps | 320 |
 | `icecast_password` | Password for Icecast source | hackme |
+| `low_latency` | Reduce stream delay (~2-3s instead of ~5-10s) | false |
+
+### Noise Reduction
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `highpass_enabled` | Enable highpass filter (removes rumble) | false |
+| `highpass_freq` | Highpass cutoff frequency in Hz (20-100) | 30 |
+| `lowpass_enabled` | Enable lowpass filter (removes hiss) | false |
+| `lowpass_freq` | Lowpass cutoff frequency in Hz (10000-20000) | 16000 |
+| `denoise_enabled` | Enable FFT-based noise reduction | false |
+| `denoise_strength` | Noise reduction strength (0.1-1.0) | 0.3 |
+
+**Recommended settings for vinyl:**
+
+- **Rumble issues:** Enable highpass at 30 Hz
+- **Hiss/high-frequency noise:** Enable lowpass at 16000 Hz
+- **General background noise:** Enable denoise at 0.3 strength
+
+**Note:** Noise reduction adds some CPU overhead. Start with filters disabled and enable only if needed.
+
+### Low Latency Mode
+
+Enable `low_latency` to reduce stream delay from ~5-10 seconds down to ~2-3 seconds. This is useful when you want audio more in sync with the vinyl playback.
+
+**Trade-offs:**
+- May cause stuttering on slow or unstable networks
+- Clients may take longer to buffer initially
+- Not recommended for WiFi connections with poor signal
+
+If you experience audio dropouts, disable this option.
 
 ## Audio Input Selection
 
