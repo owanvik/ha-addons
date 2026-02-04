@@ -1,4 +1,7 @@
 configuration:
+  compressor_enabled:
+    name: Audio Compressor
+    description: Reduces dynamic range - makes quiet parts louder and loud parts quieter.
   station_name:
     name: Station Name
     description: The name that appears in media players when streaming. Shows up in Music Assistant, VLC, etc.

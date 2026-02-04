@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.8.4] - 2026-02-04
+
+### Added
+- Testing: Added only compressor_enabled (bool) to isolate issue
+
 ## [1.8.3] - 2026-02-04
 
 ### Fixed
