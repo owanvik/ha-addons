@@ -31,6 +31,12 @@ AUDIO_FORMAT=$(bashio::config 'audio_format' | sed 's/ (Default)//')
 MAX_LISTENERS=$(bashio::config 'max_listeners')
 GENRE=$(bashio::config 'genre')
 
+# MQTT settings
+MQTT_ENABLED=$(bashio::config 'mqtt_enabled')
+MQTT_HOST=$(bashio::config 'mqtt_host')
+MQTT_USERNAME=$(bashio::config 'mqtt_username')
+MQTT_PASSWORD=$(bashio::config 'mqtt_password')
+
 # Noise reduction settings
 HIGHPASS_ENABLED=$(bashio::config 'noise_reduction.highpass_enabled')
 HIGHPASS_FREQ=$(bashio::config 'noise_reduction.highpass_freq')
@@ -159,6 +165,13 @@ if [ -z "${HA_IP}" ]; then
     HA_IP="[YOUR_HA_IP]"
 fi
 
+# Setup MQTT if enabled (after HA_IP is set)
+if bashio::var.true "${MQTT_ENABLED}"; then
+    if setup_mqtt; then
+        mqtt_discovery
+    fi
+fi
+
 # Determine input format
 if [ "${AUDIO_DEVICE}" = "default" ]; then
     INPUT_FORMAT="pulse"
@@ -249,10 +262,104 @@ write_status() {
 EOF
 }
 
+# MQTT functions
+setup_mqtt() {
+    # Try to auto-detect MQTT broker from Mosquitto add-on
+    if [ -z "${MQTT_HOST}" ] && bashio::services.available "mqtt"; then
+        MQTT_HOST=$(bashio::services "mqtt" "host")
+        MQTT_PORT=$(bashio::services "mqtt" "port")
+        if [ -z "${MQTT_USERNAME}" ]; then
+            MQTT_USERNAME=$(bashio::services "mqtt" "username")
+        fi
+        if [ -z "${MQTT_PASSWORD}" ]; then
+            MQTT_PASSWORD=$(bashio::services "mqtt" "password")
+        fi
+        bashio::log.info "MQTT: Auto-detected Mosquitto at ${MQTT_HOST}:${MQTT_PORT}"
+    else
+        MQTT_PORT=1883
+        bashio::log.info "MQTT: Using configured host ${MQTT_HOST}:${MQTT_PORT}"
+    fi
+
+    if [ -z "${MQTT_HOST}" ]; then
+        bashio::log.warning "MQTT: No broker found. Disable MQTT or install Mosquitto add-on."
+        MQTT_ENABLED=false
+        return 1
+    fi
+    return 0
+}
+
+mqtt_publish() {
+    local topic=$1
+    local payload=$2
+    local retain=${3:-false}
+
+    local mqtt_args="-h ${MQTT_HOST} -p ${MQTT_PORT}"
+    if [ -n "${MQTT_USERNAME}" ]; then
+        mqtt_args="${mqtt_args} -u ${MQTT_USERNAME}"
+    fi
+    if [ -n "${MQTT_PASSWORD}" ]; then
+        mqtt_args="${mqtt_args} -P ${MQTT_PASSWORD}"
+    fi
+    if [ "${retain}" = "true" ]; then
+        mqtt_args="${mqtt_args} -r"
+    fi
+
+    mosquitto_pub ${mqtt_args} -t "${topic}" -m "${payload}" 2>/dev/null || true
+}
+
+mqtt_discovery() {
+    local device_id="vinyl_streamer"
+    local discovery_prefix="homeassistant"
+
+    # Device info (shared by all entities)
+    local device_info='"device":{"identifiers":["vinyl_streamer"],"name":"Vinyl Streamer","manufacturer":"owanvik","model":"HA Add-on","sw_version":"1.8.13"}'
+
+    # Binary sensor: Streaming status
+    local config_topic="${discovery_prefix}/binary_sensor/${device_id}/streaming/config"
+    local state_topic="vinyl_streamer/state"
+    local config_payload="{\"name\":\"Streaming\",\"unique_id\":\"vinyl_streamer_streaming\",\"state_topic\":\"${state_topic}\",\"value_template\":\"{{ value_json.streaming }}\",\"payload_on\":\"true\",\"payload_off\":\"false\",\"device_class\":\"running\",${device_info}}"
+    mqtt_publish "${config_topic}" "${config_payload}" true
+
+    # Sensor: Format
+    config_topic="${discovery_prefix}/sensor/${device_id}/format/config"
+    config_payload="{\"name\":\"Format\",\"unique_id\":\"vinyl_streamer_format\",\"state_topic\":\"${state_topic}\",\"value_template\":\"{{ value_json.format }}\",\"icon\":\"mdi:file-music\",${device_info}}"
+    mqtt_publish "${config_topic}" "${config_payload}" true
+
+    # Sensor: Bitrate
+    config_topic="${discovery_prefix}/sensor/${device_id}/bitrate/config"
+    config_payload="{\"name\":\"Bitrate\",\"unique_id\":\"vinyl_streamer_bitrate\",\"state_topic\":\"${state_topic}\",\"value_template\":\"{{ value_json.bitrate }}\",\"unit_of_measurement\":\"kbps\",\"icon\":\"mdi:speedometer\",${device_info}}"
+    mqtt_publish "${config_topic}" "${config_payload}" true
+
+    # Sensor: Uptime
+    config_topic="${discovery_prefix}/sensor/${device_id}/uptime/config"
+    config_payload="{\"name\":\"Uptime\",\"unique_id\":\"vinyl_streamer_uptime\",\"state_topic\":\"${state_topic}\",\"value_template\":\"{{ value_json.uptime_seconds }}\",\"unit_of_measurement\":\"s\",\"device_class\":\"duration\",\"icon\":\"mdi:timer\",${device_info}}"
+    mqtt_publish "${config_topic}" "${config_payload}" true
+
+    # Sensor: Stream URL
+    config_topic="${discovery_prefix}/sensor/${device_id}/stream_url/config"
+    config_payload="{\"name\":\"Stream URL\",\"unique_id\":\"vinyl_streamer_url\",\"state_topic\":\"${state_topic}\",\"value_template\":\"{{ value_json.stream_url }}\",\"icon\":\"mdi:link\",${device_info}}"
+    mqtt_publish "${config_topic}" "${config_payload}" true
+
+    bashio::log.info "MQTT: Discovery messages published"
+}
+
+mqtt_publish_state() {
+    local streaming=$1
+    local current_time=$(date +%s)
+    local uptime=$((current_time - START_TIME))
+
+    local state_payload="{\"streaming\":${streaming},\"uptime_seconds\":${uptime},\"format\":\"${AUDIO_FORMAT}\",\"bitrate\":${AUDIO_BITRATE},\"samplerate\":${AUDIO_SAMPLERATE},\"channels\":${AUDIO_CHANNELS},\"station_name\":\"${STATION_NAME}\",\"stream_url\":\"http://${HA_IP}:8000${MOUNT_POINT}\"}"
+
+    mqtt_publish "vinyl_streamer/state" "${state_payload}" true
+}
+
 # Cleanup on exit
 cleanup() {
     bashio::log.info "Shutting down..."
     write_status false
+    if bashio::var.true "${MQTT_ENABLED}"; then
+        mqtt_publish_state false
+    fi
     kill $FFMPEG_PID 2>/dev/null || true
     kill $ICECAST_PID 2>/dev/null || true
     exit 0
@@ -294,6 +401,9 @@ while true; do
 
     # Write status before starting
     write_status true
+    if bashio::var.true "${MQTT_ENABLED}"; then
+        mqtt_publish_state true
+    fi
 
     ${FFMPEG_CMD} "icecast://source:${ICECAST_PASSWORD}@localhost:8000${MOUNT_POINT}" &
     

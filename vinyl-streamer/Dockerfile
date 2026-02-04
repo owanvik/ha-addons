@@ -12,7 +12,8 @@ RUN apk add --no-cache \
     lame \
     mailcap \
     bash \
-    netcat-openbsd
+    netcat-openbsd \
+    mosquitto-clients
 
 # Create directories
 RUN mkdir -p /etc/icecast /var/log/icecast /run

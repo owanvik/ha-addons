@@ -1,6 +1,6 @@
 name: "Vinyl Streamer"
 description: "Stream audio from USB input to Icecast (FFmpeg + Icecast)"
-version: "1.8.12"
+version: "1.8.13"
 slug: "vinyl-streamer"
 init: false
 arch:
@@ -31,6 +31,10 @@ options:
   audio_format: "MP3 (Default)"
   max_listeners: 10
   genre: "Vinyl"
+  mqtt_enabled: false
+  mqtt_host: ""
+  mqtt_username: ""
+  mqtt_password: ""
   audio_quality:
     samplerate: "44100 (Default)"
     channels: "2 (Default)"
@@ -53,6 +57,10 @@ schema:
   audio_format: "list(MP3 (Default)|AAC|Opus)"
   max_listeners: "int(1,100)"
   genre: str
+  mqtt_enabled: bool
+  mqtt_host: str?
+  mqtt_username: str?
+  mqtt_password: str?
   audio_quality:
     samplerate: "list(44100 (Default)|48000)"
     channels: "list(1|2 (Default))"

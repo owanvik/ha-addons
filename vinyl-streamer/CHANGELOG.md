@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.8.13] - 2026-02-04
+
+### Added
+- MQTT Discovery: Auto-creates sensors in Home Assistant when enabled
+  - Binary sensor for streaming status
+  - Sensors for format, bitrate, uptime, and stream URL
+- Auto-detects Mosquitto add-on (no manual configuration needed)
+- Optional manual MQTT host/username/password for external brokers
+
 ## [1.8.12] - 2026-02-04
 
 ### Added
