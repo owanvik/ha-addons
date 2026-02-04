@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.8.0] - 2026-02-04
+
+### Added
+- Audio Processing section with volume adjustment and compressor (testing incremental features)
+
 ## [1.7.8] - 2026-02-04
 
 ### Fixed
