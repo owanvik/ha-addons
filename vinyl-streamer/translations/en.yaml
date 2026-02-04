@@ -42,8 +42,8 @@ configuration:
       name: Lowpass Frequency
       description: Cutoff frequency in Hz (10000-20000)
     denoise_enabled:
-      name: Denoise
+      name: De-noise
       description: FFT-based noise reduction
     denoise_strength:
-      name: Denoise Strength
+      name: De-noise Strength
       description: Noise reduction intensity (0.1-1.0)

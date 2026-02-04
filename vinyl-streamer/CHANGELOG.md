@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.4] - 2026-02-04
+
+### Fixed
+- Fixed "De-noise" spelling in labels
+
 ## [1.7.3] - 2026-02-04
 
 ### Fixed
