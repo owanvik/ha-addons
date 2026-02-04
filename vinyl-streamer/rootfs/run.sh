@@ -11,31 +11,24 @@ set -e
 STATION_NAME=$(bashio::config 'station_name')
 STATION_DESC=$(bashio::config 'station_description')
 MOUNT_POINT=$(bashio::config 'mount_point')
-# Strip "(Default)" suffix from list values
+ICECAST_PASSWORD=$(bashio::config 'icecast_password')
+LOW_LATENCY=$(bashio::config 'low_latency')
+
+# Audio quality settings - strip "(Default)" suffix from list values
+AUDIO_FORMAT=$(bashio::config 'audio_quality.format' | sed 's/ (Default)//')
 AUDIO_SAMPLERATE=$(bashio::config 'audio_quality.samplerate' | sed 's/ (Default)//')
 AUDIO_CHANNELS=$(bashio::config 'audio_quality.channels' | sed 's/ (Default)//')
 AUDIO_BITRATE=$(bashio::config 'audio_quality.bitrate' | sed 's/ (Default)//')
-ICECAST_PASSWORD=$(bashio::config 'icecast_password')
 
-# Low latency mode
-LOW_LATENCY=$(bashio::config 'low_latency')
-
-# Audio processing settings (root level)
+# Audio processing settings
 # volume_db is a string like "-6 dB" or "+4 dB", extract the number
-VOLUME_DB_RAW=$(bashio::config 'volume_db' | sed 's/ dB.*//;s/+//')
+VOLUME_DB_RAW=$(bashio::config 'audio_processing.volume_db' | sed 's/ dB.*//;s/+//')
 VOLUME_DB="${VOLUME_DB_RAW}"
-COMPRESSOR_ENABLED=$(bashio::config 'compressor_enabled')
-
-# Audio format and Icecast settings
-AUDIO_FORMAT=$(bashio::config 'audio_format' | sed 's/ (Default)//')
-MAX_LISTENERS=$(bashio::config 'max_listeners')
-GENRE=$(bashio::config 'genre')
-
-# MQTT settings
-MQTT_ENABLED=$(bashio::config 'mqtt_enabled')
-MQTT_HOST=$(bashio::config 'mqtt_host')
-MQTT_USERNAME=$(bashio::config 'mqtt_username')
-MQTT_PASSWORD=$(bashio::config 'mqtt_password')
+COMPRESSOR_ENABLED=$(bashio::config 'audio_processing.compressor_enabled')
+# Extract threshold number from "-20 dB (Default)" -> -20
+COMPRESSOR_THRESHOLD=$(bashio::config 'audio_processing.compressor_threshold' | sed 's/ dB.*//;s/ (Default)//')
+# Extract ratio number from "4:1 (Default)" -> 4
+COMPRESSOR_RATIO=$(bashio::config 'audio_processing.compressor_ratio' | sed 's/:1.*//;s/ (Default)//')
 
 # Noise reduction settings
 HIGHPASS_ENABLED=$(bashio::config 'noise_reduction.highpass_enabled')
@@ -44,6 +37,16 @@ LOWPASS_ENABLED=$(bashio::config 'noise_reduction.lowpass_enabled')
 LOWPASS_FREQ=$(bashio::config 'noise_reduction.lowpass_freq')
 DENOISE_ENABLED=$(bashio::config 'noise_reduction.denoise_enabled')
 DENOISE_STRENGTH=$(bashio::config 'noise_reduction.denoise_strength')
+
+# Icecast settings
+MAX_LISTENERS=$(bashio::config 'icecast.max_listeners')
+GENRE=$(bashio::config 'icecast.genre')
+
+# MQTT settings
+MQTT_ENABLED=$(bashio::config 'mqtt.enabled')
+MQTT_HOST=$(bashio::config 'mqtt.host')
+MQTT_USERNAME=$(bashio::config 'mqtt.username')
+MQTT_PASSWORD=$(bashio::config 'mqtt.password')
 
 # Get audio input from HA's built-in audio selector
 if bashio::var.has_value "$(bashio::addon.audio_input)"; then
@@ -226,11 +229,11 @@ fi
 # Compressor
 if bashio::var.true "${COMPRESSOR_ENABLED}"; then
     if [ -n "${AUDIO_FILTERS}" ]; then
-        AUDIO_FILTERS="${AUDIO_FILTERS},acompressor=threshold=-20dB:ratio=4:attack=5:release=50"
+        AUDIO_FILTERS="${AUDIO_FILTERS},acompressor=threshold=${COMPRESSOR_THRESHOLD}dB:ratio=${COMPRESSOR_RATIO}:attack=5:release=50"
     else
-        AUDIO_FILTERS="acompressor=threshold=-20dB:ratio=4:attack=5:release=50"
+        AUDIO_FILTERS="acompressor=threshold=${COMPRESSOR_THRESHOLD}dB:ratio=${COMPRESSOR_RATIO}:attack=5:release=50"
     fi
-    bashio::log.info "Audio compressor: enabled"
+    bashio::log.info "Audio compressor: enabled (threshold: ${COMPRESSOR_THRESHOLD} dB, ratio: ${COMPRESSOR_RATIO}:1)"
 fi
 
 if [ -z "${AUDIO_FILTERS}" ]; then

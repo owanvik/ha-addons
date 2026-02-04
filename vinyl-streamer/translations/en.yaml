@@ -1,31 +1,4 @@
 configuration:
-  compressor_enabled:
-    name: Audio Compressor
-    description: Reduces dynamic range - makes quiet parts louder and loud parts quieter.
-  volume_db:
-    name: Volume (dB)
-    description: Adjust output volume. 0 dB = no change, negative = quieter, positive = louder.
-  audio_format:
-    name: Audio Format
-    description: Encoding format. MP3 is most compatible, AAC is slightly better quality, Opus is best but less compatible.
-  max_listeners:
-    name: Max Listeners
-    description: Maximum number of simultaneous listeners (1-100).
-  genre:
-    name: Genre Tag
-    description: Genre shown in media players. Default is "Vinyl".
-  mqtt_enabled:
-    name: MQTT Discovery
-    description: Enable MQTT auto-discovery. Creates sensors automatically in Home Assistant. Requires MQTT broker (Mosquitto).
-  mqtt_host:
-    name: MQTT Host
-    description: Leave empty to auto-detect Mosquitto add-on. Only set if using external MQTT broker.
-  mqtt_username:
-    name: MQTT Username
-    description: Leave empty to use Mosquitto add-on credentials automatically.
-  mqtt_password:
-    name: MQTT Password
-    description: Leave empty to use Mosquitto add-on credentials automatically.
   station_name:
     name: Station Name
     description: The name that appears in media players when streaming. Shows up in Music Assistant, VLC, etc.
@@ -43,8 +16,11 @@ configuration:
     description: Reduces stream delay from ~5-10 seconds to ~2-3 seconds. Enable if you want audio closer to real-time. May cause stuttering on slow WiFi.
   audio_quality:
     name: Audio Quality
-    description: Configure audio encoding quality. Higher values = better quality but more bandwidth.
+    description: Configure audio encoding format and quality settings.
     fields:
+      format:
+        name: Audio Format
+        description: Encoding format. MP3 is most compatible, AAC is slightly better quality, Opus is best but less compatible.
       samplerate:
         name: Sample Rate
         description: 44100 Hz is CD quality and recommended for vinyl. 48000 Hz is slightly higher but rarely needed.
@@ -54,9 +30,25 @@ configuration:
       bitrate:
         name: Bitrate
         description: Higher = better quality. 320 kbps is near CD quality, 256 is excellent, 192 is good, 128 is acceptable for background music.
+  audio_processing:
+    name: Audio Processing
+    description: Volume and dynamics processing for the audio stream.
+    fields:
+      volume_db:
+        name: Volume (dB)
+        description: Adjust output volume. 0 dB = no change, negative = quieter, positive = louder.
+      compressor_enabled:
+        name: Audio Compressor
+        description: Reduces dynamic range - makes quiet parts louder and loud parts quieter.
+      compressor_threshold:
+        name: Compressor Threshold
+        description: Volume level where compression starts. Lower values compress more of the audio. -20 dB is a good starting point.
+      compressor_ratio:
+        name: Compressor Ratio
+        description: How much to reduce volume above threshold. 4:1 means 4 dB input becomes 1 dB output. Higher = more compression.
   noise_reduction:
     name: Noise Reduction
-    description: Audio filters to reduce unwanted noise from vinyl playback
+    description: Audio filters to reduce unwanted noise from vinyl playback.
     fields:
       highpass_enabled:
         name: Highpass
@@ -76,3 +68,29 @@ configuration:
       denoise_strength:
         name: De-noise Strength
         description: How aggressively to reduce noise. Lower values (0.1-0.3) are subtle, higher values (0.5-1.0) more aggressive but may affect audio quality.
+  icecast:
+    name: Icecast Settings
+    description: Server settings for the Icecast streaming server.
+    fields:
+      max_listeners:
+        name: Max Listeners
+        description: Maximum number of simultaneous listeners (1-100).
+      genre:
+        name: Genre Tag
+        description: Genre shown in media players. Default is "Vinyl".
+  mqtt:
+    name: MQTT Integration
+    description: MQTT auto-discovery creates sensors automatically in Home Assistant.
+    fields:
+      enabled:
+        name: Enable MQTT
+        description: Enable MQTT auto-discovery. Creates sensors automatically in Home Assistant. Requires MQTT broker (Mosquitto).
+      host:
+        name: MQTT Host
+        description: Leave empty to auto-detect Mosquitto add-on. Only set if using external MQTT broker.
+      username:
+        name: MQTT Username
+        description: Leave empty to use Mosquitto add-on credentials automatically.
+      password:
+        name: MQTT Password
+        description: Leave empty to use Mosquitto add-on credentials automatically.

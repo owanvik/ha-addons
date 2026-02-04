@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.8.14] - 2026-02-04
+
+### Added
+- Compressor threshold setting (-40 dB to -5 dB)
+- Compressor ratio setting (2:1 to 20:1)
+
+### Changed
+- Reorganized settings into collapsible sections:
+  - Audio Quality (format, samplerate, channels, bitrate)
+  - Audio Processing (volume, compressor)
+  - Noise Reduction (highpass, lowpass, denoise)
+  - Icecast Settings (max listeners, genre)
+  - MQTT Integration (enable, host, credentials)
+
 ## [1.8.13] - 2026-02-04
 
 ### Added
