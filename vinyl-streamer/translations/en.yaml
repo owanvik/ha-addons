@@ -1,4 +1,10 @@
 configuration:
+  volume_db:
+    name: Volume (dB)
+    description: Adjust output volume. 0 = no change, positive = louder, negative = quieter. Range -20 to +20 dB.
+  compressor_enabled:
+    name: Audio Compressor
+    description: Reduces dynamic range - makes quiet parts louder and loud parts quieter. Good for background listening.
   station_name:
     name: Station Name
     description: The name that appears in media players when streaming. Shows up in Music Assistant, VLC, etc.
@@ -27,16 +33,6 @@ configuration:
       bitrate:
         name: Bitrate
         description: Higher = better quality. 320 kbps is near CD quality, 256 is excellent, 192 is good, 128 is acceptable for background music.
-  audio_processing:
-    name: Audio Processing
-    description: Adjust volume and dynamics of the audio signal.
-    fields:
-      volume_db:
-        name: Volume (dB)
-        description: Adjust output volume. 0 = no change, positive = louder, negative = quieter.
-      compressor_enabled:
-        name: Compressor
-        description: Reduces dynamic range - makes quiet parts louder and loud parts quieter.
   noise_reduction:
     name: Noise Reduction
     description: Audio filters to reduce unwanted noise from vinyl playback

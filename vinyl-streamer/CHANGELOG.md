@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.8.2] - 2026-02-04
+
+### Fixed
+- Moved volume_db and compressor_enabled to root level (HA has limit on nested sections)
+
 ## [1.8.1] - 2026-02-04
 
 ### Fixed

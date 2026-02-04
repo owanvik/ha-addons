@@ -20,6 +20,10 @@ ICECAST_PASSWORD=$(bashio::config 'icecast_password')
 # Low latency mode
 LOW_LATENCY=$(bashio::config 'low_latency')
 
+# Audio processing settings (root level)
+VOLUME_DB=$(bashio::config 'volume_db')
+COMPRESSOR_ENABLED=$(bashio::config 'compressor_enabled')
+
 # Noise reduction settings
 HIGHPASS_ENABLED=$(bashio::config 'noise_reduction.highpass_enabled')
 HIGHPASS_FREQ=$(bashio::config 'noise_reduction.highpass_freq')
@@ -183,6 +187,26 @@ if bashio::var.true "${DENOISE_ENABLED}"; then
         AUDIO_FILTERS="afftdn=nf=-25:nr=${DENOISE_STRENGTH}:nt=w"
     fi
     bashio::log.info "Noise reduction: strength ${DENOISE_STRENGTH}"
+fi
+
+# Volume adjustment
+if [ "${VOLUME_DB}" != "0" ]; then
+    if [ -n "${AUDIO_FILTERS}" ]; then
+        AUDIO_FILTERS="${AUDIO_FILTERS},volume=${VOLUME_DB}dB"
+    else
+        AUDIO_FILTERS="volume=${VOLUME_DB}dB"
+    fi
+    bashio::log.info "Volume adjustment: ${VOLUME_DB} dB"
+fi
+
+# Compressor
+if bashio::var.true "${COMPRESSOR_ENABLED}"; then
+    if [ -n "${AUDIO_FILTERS}" ]; then
+        AUDIO_FILTERS="${AUDIO_FILTERS},acompressor=threshold=-20dB:ratio=4:attack=5:release=50"
+    else
+        AUDIO_FILTERS="acompressor=threshold=-20dB:ratio=4:attack=5:release=50"
+    fi
+    bashio::log.info "Audio compressor: enabled"
 fi
 
 if [ -z "${AUDIO_FILTERS}" ]; then
