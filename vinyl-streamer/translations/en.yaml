@@ -5,6 +5,15 @@ configuration:
   volume_db:
     name: Volume (dB)
     description: Adjust output volume. 0 dB = no change, negative = quieter, positive = louder.
+  audio_format:
+    name: Audio Format
+    description: Encoding format. MP3 is most compatible, AAC is slightly better quality, Opus is best but less compatible.
+  max_listeners:
+    name: Max Listeners
+    description: Maximum number of simultaneous listeners (1-100).
+  genre:
+    name: Genre Tag
+    description: Genre shown in media players. Default is "Vinyl".
   station_name:
     name: Station Name
     description: The name that appears in media players when streaming. Shows up in Music Assistant, VLC, etc.

@@ -1,6 +1,6 @@
 name: "Vinyl Streamer"
 description: "Stream audio from USB input to Icecast (FFmpeg + Icecast)"
-version: "1.8.10"
+version: "1.8.12"
 slug: "vinyl-streamer"
 init: false
 arch:
@@ -28,6 +28,9 @@ options:
   low_latency: false
   compressor_enabled: false
   volume_db: "0 dB (Default)"
+  audio_format: "MP3 (Default)"
+  max_listeners: 10
+  genre: "Vinyl"
   audio_quality:
     samplerate: "44100 (Default)"
     channels: "2 (Default)"
@@ -47,6 +50,9 @@ schema:
   low_latency: bool
   compressor_enabled: bool
   volume_db: "list(-10 dB|-8 dB|-6 dB|-4 dB|-2 dB|-1 dB|0 dB (Default)|+1 dB|+2 dB|+4 dB|+6 dB|+8 dB|+10 dB)"
+  audio_format: "list(MP3 (Default)|AAC|Opus)"
+  max_listeners: "int(1,100)"
+  genre: str
   audio_quality:
     samplerate: "list(44100 (Default)|48000)"
     channels: "list(1|2 (Default))"

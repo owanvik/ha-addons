@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.12] - 2026-02-04
+
+### Added
+- Audio format selection: MP3 (default), AAC, or Opus encoding
+- Configurable max listeners (1-100)
+- Customizable genre tag for stream metadata
+- Status file at /share/vinyl-streamer/status.json for Home Assistant sensors
+
 ## [1.8.10] - 2026-02-04
 
 ### Changed

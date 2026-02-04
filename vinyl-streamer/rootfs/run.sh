@@ -26,6 +26,11 @@ VOLUME_DB_RAW=$(bashio::config 'volume_db' | sed 's/ dB.*//;s/+//')
 VOLUME_DB="${VOLUME_DB_RAW}"
 COMPRESSOR_ENABLED=$(bashio::config 'compressor_enabled')
 
+# Audio format and Icecast settings
+AUDIO_FORMAT=$(bashio::config 'audio_format' | sed 's/ (Default)//')
+MAX_LISTENERS=$(bashio::config 'max_listeners')
+GENRE=$(bashio::config 'genre')
+
 # Noise reduction settings
 HIGHPASS_ENABLED=$(bashio::config 'noise_reduction.highpass_enabled')
 HIGHPASS_FREQ=$(bashio::config 'noise_reduction.highpass_freq')
@@ -45,7 +50,11 @@ bashio::log.info "Starting Vinyl Streamer..."
 bashio::log.info "Station: ${STATION_NAME}"
 bashio::log.info "Mount: ${MOUNT_POINT}"
 bashio::log.info "Audio input: ${AUDIO_DEVICE}"
-bashio::log.info "Bitrate: ${AUDIO_BITRATE}kbps"
+bashio::log.info "Format: ${AUDIO_FORMAT} @ ${AUDIO_BITRATE}kbps"
+
+# Create status directory
+mkdir -p /share/vinyl-streamer
+START_TIME=$(date +%s)
 
 # Create icecast user
 addgroup -S icecast 2>/dev/null || true
@@ -83,7 +92,7 @@ cat > /etc/icecast/icecast.xml << EOF
     <location>Home</location>
     <admin>admin@localhost</admin>
     <limits>
-        <clients>10</clients>
+        <clients>${MAX_LISTENERS}</clients>
         <sources>2</sources>
         <queue-size>${QUEUE_SIZE}</queue-size>
         <client-timeout>30</client-timeout>
@@ -106,7 +115,7 @@ cat > /etc/icecast/icecast.xml << EOF
         <mount-name>${MOUNT_POINT}</mount-name>
         <stream-name>${STATION_NAME}</stream-name>
         <stream-description>${STATION_DESC}</stream-description>
-        <genre>Vinyl</genre>
+        <genre>${GENRE}</genre>
         <public>0</public>
     </mount>
     <fileserve>1</fileserve>
@@ -219,9 +228,31 @@ bashio::log.info ""
 bashio::log.info "TIP: Create a switch in HA to control streaming:"
 bashio::log.info "  See DOCS for template switch configuration"
 
+# Write status file for HA integration
+write_status() {
+    local streaming=$1
+    local current_time=$(date +%s)
+    local uptime=$((current_time - START_TIME))
+
+    cat > /share/vinyl-streamer/status.json << EOF
+{
+  "streaming": ${streaming},
+  "uptime_seconds": ${uptime},
+  "format": "${AUDIO_FORMAT}",
+  "bitrate": ${AUDIO_BITRATE},
+  "samplerate": ${AUDIO_SAMPLERATE},
+  "channels": ${AUDIO_CHANNELS},
+  "station_name": "${STATION_NAME}",
+  "mount_point": "${MOUNT_POINT}",
+  "stream_url": "http://${HA_IP}:8000${MOUNT_POINT}"
+}
+EOF
+}
+
 # Cleanup on exit
 cleanup() {
     bashio::log.info "Shutting down..."
+    write_status false
     kill $FFMPEG_PID 2>/dev/null || true
     kill $ICECAST_PID 2>/dev/null || true
     exit 0
@@ -247,7 +278,22 @@ while true; do
         FFMPEG_CMD="${FFMPEG_CMD} -af ${AUDIO_FILTERS}"
     fi
 
-    FFMPEG_CMD="${FFMPEG_CMD} -acodec libmp3lame -ab ${AUDIO_BITRATE}k -ac ${AUDIO_CHANNELS} -ar ${AUDIO_SAMPLERATE} -content_type audio/mpeg -f mp3"
+    # Set encoder based on audio format
+    case "${AUDIO_FORMAT}" in
+        "AAC")
+            FFMPEG_CMD="${FFMPEG_CMD} -acodec aac -ab ${AUDIO_BITRATE}k -ac ${AUDIO_CHANNELS} -ar ${AUDIO_SAMPLERATE} -content_type audio/aac -f adts"
+            ;;
+        "Opus")
+            FFMPEG_CMD="${FFMPEG_CMD} -acodec libopus -ab ${AUDIO_BITRATE}k -ac ${AUDIO_CHANNELS} -ar ${AUDIO_SAMPLERATE} -content_type audio/ogg -f opus"
+            ;;
+        *)
+            # Default to MP3
+            FFMPEG_CMD="${FFMPEG_CMD} -acodec libmp3lame -ab ${AUDIO_BITRATE}k -ac ${AUDIO_CHANNELS} -ar ${AUDIO_SAMPLERATE} -content_type audio/mpeg -f mp3"
+            ;;
+    esac
+
+    # Write status before starting
+    write_status true
 
     ${FFMPEG_CMD} "icecast://source:${ICECAST_PASSWORD}@localhost:8000${MOUNT_POINT}" &
     
