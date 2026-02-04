@@ -11,9 +11,10 @@ set -e
 STATION_NAME=$(bashio::config 'station_name')
 STATION_DESC=$(bashio::config 'station_description')
 MOUNT_POINT=$(bashio::config 'mount_point')
-AUDIO_SAMPLERATE=$(bashio::config 'audio_samplerate')
-AUDIO_CHANNELS=$(bashio::config 'audio_channels')
-AUDIO_BITRATE=$(bashio::config 'audio_bitrate')
+# Strip "(Default)" suffix from list values
+AUDIO_SAMPLERATE=$(bashio::config 'audio_samplerate' | sed 's/ (Default)//')
+AUDIO_CHANNELS=$(bashio::config 'audio_channels' | sed 's/ (Default)//')
+AUDIO_BITRATE=$(bashio::config 'audio_bitrate' | sed 's/ (Default)//')
 ICECAST_PASSWORD=$(bashio::config 'icecast_password')
 
 # Low latency mode

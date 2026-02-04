@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.1] - 2026-02-04
+
+### Changed
+- Added "(Default)" label to default options in radio buttons for clarity
+
 ## [1.7.0] - 2026-02-04
 
 ### Changed
