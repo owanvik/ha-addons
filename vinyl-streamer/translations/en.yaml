@@ -1,31 +1,31 @@
 configuration:
   station_name:
     name: Station Name
-    description: Name shown in stream metadata
+    description: The name that appears in media players when streaming. Shows up in Music Assistant, VLC, etc.
   station_description:
     name: Station Description
-    description: Description for the stream
+    description: Optional description shown in some media players alongside the station name.
   mount_point:
     name: Mount Point
-    description: URL path for the stream (e.g., /vinyl)
+    description: The URL path for your stream. Default /vinyl gives you http://[IP]:8000/vinyl
   icecast_password:
     name: Icecast Password
-    description: Password for Icecast source connection
+    description: Internal password for FFmpeg to connect to Icecast. Change from default for security, but not critical for local networks.
   low_latency:
     name: Low Latency Mode
-    description: Reduce stream delay (may cause stuttering)
+    description: Reduces stream delay from ~5-10 seconds to ~2-3 seconds. Enable if you want audio closer to real-time. May cause stuttering on slow WiFi.
   audio_quality:
     name: Audio Quality
-    description: Audio encoding settings
+    description: Configure audio encoding quality. Higher values = better quality but more bandwidth.
     samplerate:
       name: Sample Rate
-      description: Audio sample rate in Hz
+      description: 44100 Hz is CD quality and recommended for vinyl. 48000 Hz is slightly higher but rarely needed.
     channels:
       name: Channels
-      description: Number of audio channels
+      description: 2 (stereo) for normal vinyl playback. Use 1 (mono) only if your source is mono or to save bandwidth.
     bitrate:
       name: Bitrate
-      description: MP3 bitrate in kbps
+      description: Higher = better quality. 320 kbps is near CD quality, 256 is excellent, 192 is good, 128 is acceptable for background music.
   noise_reduction:
     name: Noise Reduction
     description: Audio filters to reduce unwanted noise from vinyl playback
