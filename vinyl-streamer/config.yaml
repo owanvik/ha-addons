@@ -1,6 +1,6 @@
 name: "Vinyl Streamer"
 description: "Stream audio from USB input to Icecast (FFmpeg + Icecast)"
-version: "1.7.7"
+version: "1.9.0"
 slug: "vinyl-streamer"
 init: false
 arch:
@@ -27,9 +27,16 @@ options:
   icecast_password: "hackme"
   low_latency: false
   audio_quality:
+    format: "mp3 (Default)"
     samplerate: "44100 (Default)"
     channels: "2 (Default)"
     bitrate: "320 (Default)"
+  audio_processing:
+    volume_db: 0
+    compressor_enabled: false
+    compressor_threshold: -20
+    compressor_ratio: 4
+    stereo_width: 1.0
   noise_reduction:
     highpass_enabled: false
     highpass_freq: 30
@@ -37,16 +44,30 @@ options:
     lowpass_freq: 16000
     denoise_enabled: false
     denoise_strength: 0.3
+  icecast:
+    max_listeners: 10
+    genre: "Vinyl"
+  recording:
+    enabled: false
+    format: "mp3 (Default)"
+    path: "/share/vinyl-recordings"
 schema:
   station_name: str
   station_description: str
   mount_point: str
-  icecast_password: str
+  icecast_password: password
   low_latency: bool
   audio_quality:
+    format: "list(mp3 (Default)|aac|opus)"
     samplerate: "list(44100 (Default)|48000)"
     channels: "list(1|2 (Default))"
     bitrate: "list(128|192|256|320 (Default))"
+  audio_processing:
+    volume_db: "int(-20,20)"
+    compressor_enabled: bool
+    compressor_threshold: "int(-60,0)"
+    compressor_ratio: "int(1,20)"
+    stereo_width: "float(0.0,2.0)"
   noise_reduction:
     highpass_enabled: bool
     highpass_freq: "int(20,100)"
@@ -54,3 +75,10 @@ schema:
     lowpass_freq: "int(10000,20000)"
     denoise_enabled: bool
     denoise_strength: "float(0.1,1.0)"
+  icecast:
+    max_listeners: "int(1,100)"
+    genre: str
+  recording:
+    enabled: bool
+    format: "list(mp3 (Default)|flac)"
+    path: str

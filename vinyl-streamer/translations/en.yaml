@@ -16,8 +16,11 @@ configuration:
     description: Reduces stream delay from ~5-10 seconds to ~2-3 seconds. Enable if you want audio closer to real-time. May cause stuttering on slow WiFi.
   audio_quality:
     name: Audio Quality
-    description: Configure audio encoding quality. Higher values = better quality but more bandwidth.
+    description: Configure audio encoding format and quality settings.
     fields:
+      format:
+        name: Audio Format
+        description: MP3 is most compatible. AAC has better quality at same bitrate. Opus is best quality but less compatible.
       samplerate:
         name: Sample Rate
         description: 44100 Hz is CD quality and recommended for vinyl. 48000 Hz is slightly higher but rarely needed.
@@ -27,9 +30,28 @@ configuration:
       bitrate:
         name: Bitrate
         description: Higher = better quality. 320 kbps is near CD quality, 256 is excellent, 192 is good, 128 is acceptable for background music.
+  audio_processing:
+    name: Audio Processing
+    description: Adjust volume, dynamics, and stereo image of the audio signal.
+    fields:
+      volume_db:
+        name: Volume (dB)
+        description: Adjust output volume. 0 = no change, positive = louder, negative = quieter. Range -20 to +20 dB.
+      compressor_enabled:
+        name: Compressor
+        description: Reduces dynamic range - makes quiet parts louder and loud parts quieter. Good for records with inconsistent volume.
+      compressor_threshold:
+        name: Compressor Threshold
+        description: Volume level where compression starts. -20 dB is moderate, -40 dB is aggressive. Range -60 to 0 dB.
+      compressor_ratio:
+        name: Compressor Ratio
+        description: How much to compress. 4:1 is moderate, 8:1 is strong, 20:1 is limiting. Range 1 to 20.
+      stereo_width:
+        name: Stereo Width
+        description: Adjust stereo image. 0 = mono, 1.0 = normal, 2.0 = extra wide. Values above 1.5 may sound unnatural.
   noise_reduction:
     name: Noise Reduction
-    description: Audio filters to reduce unwanted noise from vinyl playback
+    description: Audio filters to reduce unwanted noise from vinyl playback.
     fields:
       highpass_enabled:
         name: Highpass
@@ -49,3 +71,26 @@ configuration:
       denoise_strength:
         name: De-noise Strength
         description: How aggressively to reduce noise. Lower values (0.1-0.3) are subtle, higher values (0.5-1.0) more aggressive but may affect audio quality.
+  icecast:
+    name: Icecast Server
+    description: Configure the streaming server settings.
+    fields:
+      max_listeners:
+        name: Max Listeners
+        description: Maximum number of simultaneous listeners. Each listener uses bandwidth equal to the stream bitrate.
+      genre:
+        name: Genre
+        description: Genre tag shown in some media players. Default is "Vinyl".
+  recording:
+    name: Recording
+    description: Save the stream to files while streaming.
+    fields:
+      enabled:
+        name: Enable Recording
+        description: Record the stream to files. Creates a new file each time the add-on starts.
+      format:
+        name: Recording Format
+        description: MP3 for smaller files with good quality. FLAC for lossless archival quality (larger files).
+      path:
+        name: Recording Path
+        description: Where to save recordings. Default /share/vinyl-recordings is accessible from HA file browser.

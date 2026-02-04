@@ -25,7 +25,10 @@ Most USB audio devices with standard UAC (USB Audio Class) drivers work. Avoid d
 - **HA Audio Selector** - Pick audio input from dropdown
 - **Auto-restart** - FFmpeg reconnects automatically if audio disconnects
 - **Real IP Display** - Stream URL shown in log with actual IP address
-- **High Quality** - 320kbps stereo MP3 by default
+- **Multiple Audio Formats** - MP3, AAC, or Opus encoding
+- **Audio Processing** - Volume, compressor, stereo width controls
+- **Recording** - Save streams to MP3 or FLAC files
+- **HA Integration** - Status file for creating Home Assistant sensors
 
 ## Quick Start
 
@@ -37,16 +40,44 @@ Most USB audio devices with standard UAC (USB Audio Class) drivers work. Avoid d
 
 ## Configuration
 
+### Basic Settings
+
 | Option | Description | Default |
 |--------|-------------|---------|
 | `station_name` | Name shown in stream metadata | Vinyl Radio |
 | `station_description` | Description for the stream | Streaming from vinyl player |
 | `mount_point` | URL path for the stream | /vinyl |
-| `audio_samplerate` | Sample rate in Hz | 44100 |
-| `audio_channels` | 1 (mono) or 2 (stereo) | 2 |
-| `audio_bitrate` | MP3 bitrate in kbps | 320 |
 | `icecast_password` | Password for Icecast source | hackme |
 | `low_latency` | Reduce stream delay (~2-3s instead of ~5-10s) | false |
+
+### Audio Quality
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `format` | Audio codec (mp3, aac, opus) | mp3 |
+| `samplerate` | Sample rate in Hz | 44100 |
+| `channels` | 1 (mono) or 2 (stereo) | 2 |
+| `bitrate` | Bitrate in kbps (128-320) | 320 |
+
+**Format comparison:**
+- **MP3** - Most compatible, works everywhere
+- **AAC** - Better quality at same bitrate, good for Apple devices
+- **Opus** - Best quality, but less compatible with older players
+
+### Audio Processing
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `volume_db` | Volume adjustment (-20 to +20 dB) | 0 |
+| `compressor_enabled` | Enable dynamic range compression | false |
+| `compressor_threshold` | When compression starts (-60 to 0 dB) | -20 |
+| `compressor_ratio` | Compression ratio (1-20) | 4 |
+| `stereo_width` | Stereo image (0=mono, 1=normal, 2=wide) | 1.0 |
+
+**When to use the compressor:**
+- Records with inconsistent volume between tracks
+- Very dynamic classical or jazz recordings
+- Background listening where you want even volume
 
 ### Noise Reduction
 
@@ -67,6 +98,27 @@ Most USB audio devices with standard UAC (USB Audio Class) drivers work. Avoid d
 
 **Note:** Noise reduction adds some CPU overhead. Start with filters disabled and enable only if needed.
 
+### Icecast Server
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `max_listeners` | Maximum simultaneous listeners (1-100) | 10 |
+| `genre` | Genre tag for stream metadata | Vinyl |
+
+### Recording
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `enabled` | Enable recording to file | false |
+| `format` | Recording format (mp3 or flac) | mp3 |
+| `path` | Directory to save recordings | /share/vinyl-recordings |
+
+**Recording notes:**
+- A new file is created each time the add-on starts
+- Files are named `vinyl_YYYYMMDD_HHMMSS.mp3` (or .flac)
+- FLAC files are larger but lossless - good for archiving
+- Recordings are saved to `/share/` which is accessible from HA file browser
+
 ### Low Latency Mode
 
 Enable `low_latency` to reduce stream delay from ~5-10 seconds down to ~2-3 seconds. This is useful when you want audio more in sync with the vinyl playback.
@@ -77,6 +129,59 @@ Enable `low_latency` to reduce stream delay from ~5-10 seconds down to ~2-3 seco
 - Not recommended for WiFi connections with poor signal
 
 If you experience audio dropouts, disable this option.
+
+## Home Assistant Integration
+
+The add-on creates a status file that you can use to create HA sensors.
+
+### Status File
+
+Location: `/share/vinyl-streamer/status.json`
+
+```json
+{
+    "streaming": true,
+    "recording": false,
+    "format": "mp3",
+    "bitrate": 320,
+    "uptime_seconds": 3600,
+    "last_update": "2026-02-04T15:30:00+00:00"
+}
+```
+
+### Creating a Sensor
+
+Add this to your `configuration.yaml`:
+
+```yaml
+sensor:
+  - platform: rest
+    name: Vinyl Streamer Status
+    resource: http://localhost:8123/local/vinyl-streamer/status.json
+    value_template: "{{ value_json.streaming }}"
+    json_attributes:
+      - recording
+      - format
+      - bitrate
+      - uptime_seconds
+    scan_interval: 30
+```
+
+Or use a command line sensor:
+
+```yaml
+sensor:
+  - platform: command_line
+    name: Vinyl Streamer
+    command: "cat /share/vinyl-streamer/status.json"
+    value_template: "{{ value_json.streaming }}"
+    json_attributes:
+      - recording
+      - format
+      - bitrate
+      - uptime_seconds
+    scan_interval: 30
+```
 
 ## Audio Input Selection
 
@@ -271,3 +376,10 @@ You can test the stream in any of these ways:
 - Lower the bitrate to 192 or 256
 - Check network/WiFi quality
 - Ensure HA host isn't overloaded
+- If using low latency mode, try disabling it
+
+### Recording not working
+
+- Check that the recording path exists and is writable
+- Ensure there's enough disk space in /share
+- Check add-on logs for errors

@@ -1,5 +1,30 @@
 # Changelog
 
+## [1.9.0] - 2026-02-04
+
+### Added
+- **Audio Format Selection**: Choose between MP3, AAC, or Opus encoding
+- **Audio Processing Section**:
+  - Volume adjustment (-20 to +20 dB)
+  - Audio compressor for dynamic range control
+  - Stereo width adjustment (mono to extra wide)
+- **Icecast Settings Section**:
+  - Configurable max listeners (1-100)
+  - Custom genre tag
+- **Recording Feature**: Save stream to MP3 or FLAC files while streaming
+- **Home Assistant Integration**: Status file at /share/vinyl-streamer/status.json for creating HA sensors
+- **Docker health check**: Automatic container restart on Icecast failure
+
+### Changed
+- FFmpeg restart now uses exponential backoff (5s to 60s) to prevent log spam
+- Better Icecast startup verification (waits for port to actually open)
+- Improved startup logging with configuration summary
+- More robust cleanup on shutdown (graceful + force kill)
+
+### Security
+- XML escape for station name, description, and genre (prevents config injection)
+- Config file permissions restricted (chmod 600)
+
 ## [1.7.7] - 2026-02-04
 
 ### Fixed
