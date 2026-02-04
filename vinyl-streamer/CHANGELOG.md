@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.8.3] - 2026-02-04
+
+### Fixed
+- Reverted to exact 1.7.7 config structure (removed volume_db, compressor_enabled)
+
 ## [1.8.2] - 2026-02-04
 
 ### Fixed

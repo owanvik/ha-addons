@@ -1,6 +1,6 @@
 name: "Vinyl Streamer"
 description: "Stream audio from USB input to Icecast (FFmpeg + Icecast)"
-version: "1.8.2"
+version: "1.8.3"
 slug: "vinyl-streamer"
 init: false
 arch:
@@ -26,8 +26,6 @@ options:
   mount_point: "/vinyl"
   icecast_password: "hackme"
   low_latency: false
-  volume_db: 0
-  compressor_enabled: false
   audio_quality:
     samplerate: "44100 (Default)"
     channels: "2 (Default)"
@@ -45,8 +43,6 @@ schema:
   mount_point: str
   icecast_password: str
   low_latency: bool
-  volume_db: "int(-20,20)"
-  compressor_enabled: bool
   audio_quality:
     samplerate: "list(44100 (Default)|48000)"
     channels: "list(1|2 (Default))"
