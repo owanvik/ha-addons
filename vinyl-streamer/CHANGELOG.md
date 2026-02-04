@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.6] - 2026-02-04
+
+### Fixed
+- Fixed translations for nested configuration fields (noise reduction, audio quality) using dot notation
+
 ## [1.7.5] - 2026-02-04
 
 ### Changed

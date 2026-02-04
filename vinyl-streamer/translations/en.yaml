@@ -17,33 +17,33 @@ configuration:
   audio_quality:
     name: Audio Quality
     description: Configure audio encoding quality. Higher values = better quality but more bandwidth.
-    samplerate:
-      name: Sample Rate
-      description: 44100 Hz is CD quality and recommended for vinyl. 48000 Hz is slightly higher but rarely needed.
-    channels:
-      name: Channels
-      description: 2 (stereo) for normal vinyl playback. Use 1 (mono) only if your source is mono or to save bandwidth.
-    bitrate:
-      name: Bitrate
-      description: Higher = better quality. 320 kbps is near CD quality, 256 is excellent, 192 is good, 128 is acceptable for background music.
+  audio_quality.samplerate:
+    name: Sample Rate
+    description: 44100 Hz is CD quality and recommended for vinyl. 48000 Hz is slightly higher but rarely needed.
+  audio_quality.channels:
+    name: Channels
+    description: 2 (stereo) for normal vinyl playback. Use 1 (mono) only if your source is mono or to save bandwidth.
+  audio_quality.bitrate:
+    name: Bitrate
+    description: Higher = better quality. 320 kbps is near CD quality, 256 is excellent, 192 is good, 128 is acceptable for background music.
   noise_reduction:
     name: Noise Reduction
     description: Audio filters to reduce unwanted noise from vinyl playback
-    highpass_enabled:
-      name: Highpass
-      description: Removes low-frequency rumble from turntable motor and vibrations. Recommended for most setups.
-    highpass_freq:
-      name: Highpass Frequency
-      description: Frequencies below this value are filtered out. Default 30 Hz removes rumble while preserving bass.
-    lowpass_enabled:
-      name: Lowpass
-      description: Removes high-frequency hiss and noise from worn records or preamp noise.
-    lowpass_freq:
-      name: Lowpass Frequency
-      description: Frequencies above this value are filtered out. Default 16000 Hz removes hiss while preserving detail.
-    denoise_enabled:
-      name: De-noise
-      description: Advanced FFT-based noise reduction. Reduces constant background noise like hum or tape hiss.
-    denoise_strength:
-      name: De-noise Strength
-      description: How aggressively to reduce noise. Lower values (0.1-0.3) are subtle, higher values (0.5-1.0) more aggressive but may affect audio quality.
+  noise_reduction.highpass_enabled:
+    name: Highpass
+    description: Removes low-frequency rumble from turntable motor and vibrations. Recommended for most setups.
+  noise_reduction.highpass_freq:
+    name: Highpass Frequency
+    description: Frequencies below this value are filtered out. Default 30 Hz removes rumble while preserving bass.
+  noise_reduction.lowpass_enabled:
+    name: Lowpass
+    description: Removes high-frequency hiss and noise from worn records or preamp noise.
+  noise_reduction.lowpass_freq:
+    name: Lowpass Frequency
+    description: Frequencies above this value are filtered out. Default 16000 Hz removes hiss while preserving detail.
+  noise_reduction.denoise_enabled:
+    name: De-noise
+    description: Advanced FFT-based noise reduction. Reduces constant background noise like hum or tape hiss.
+  noise_reduction.denoise_strength:
+    name: De-noise Strength
+    description: How aggressively to reduce noise. Lower values (0.1-0.3) are subtle, higher values (0.5-1.0) more aggressive but may affect audio quality.
