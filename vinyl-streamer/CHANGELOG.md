@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.8] - 2026-02-04
+
+### Fixed
+- Reverted to 1.7.7 config to restore add-on visibility (debugging 1.9.x issues)
+
 ## [1.9.3] - 2026-02-04
 
 ### Fixed
