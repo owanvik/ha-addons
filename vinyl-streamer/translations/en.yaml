@@ -1,0 +1,46 @@
+configuration:
+  station_name:
+    name: Station Name
+    description: Name shown in stream metadata
+  station_description:
+    name: Station Description
+    description: Description for the stream
+  mount_point:
+    name: Mount Point
+    description: URL path for the stream (e.g., /vinyl)
+  audio_samplerate:
+    name: Sample Rate
+    description: Audio sample rate in Hz
+  audio_channels:
+    name: Channels
+    description: Number of audio channels
+  audio_bitrate:
+    name: Bitrate
+    description: MP3 bitrate in kbps
+  icecast_password:
+    name: Icecast Password
+    description: Password for Icecast source connection
+  low_latency:
+    name: Low Latency Mode
+    description: Reduce stream delay (may cause stuttering)
+  noise_reduction:
+    name: Noise Reduction
+    description: Audio filters to reduce noise
+    highpass_enabled:
+      name: Enable Highpass Filter
+      description: Remove low-frequency rumble
+    highpass_freq:
+      name: Highpass Frequency (Hz)
+      description: Cutoff frequency for rumble filter (20-100 Hz)
+    lowpass_enabled:
+      name: Enable Lowpass Filter
+      description: Remove high-frequency hiss
+    lowpass_freq:
+      name: Lowpass Frequency (Hz)
+      description: Cutoff frequency for hiss filter (10000-20000 Hz)
+    denoise_enabled:
+      name: Enable Noise Reduction
+      description: FFT-based noise reduction
+    denoise_strength:
+      name: Denoise Strength
+      description: Noise reduction intensity (0.1-1.0)

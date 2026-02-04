@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.7.0] - 2026-02-04
+
+### Changed
+- Improved configuration UI with dropdown selects instead of radio buttons
+- Added translations for better labels and descriptions
+- Password field now hides input
+
+## [1.6.0] - 2026-02-04
+
+### Added
+- Low latency mode option to reduce stream delay (~2-3s instead of ~5-10s)
+  - Reduces Icecast buffer sizes
+  - Adds FFmpeg low-delay flags
+  - Disabled by default (may cause stuttering on slow networks)
+
+## [1.5.0] - 2026-02-04
+
+### Added
+- Noise reduction options with configurable audio filters:
+  - Highpass filter (20-100 Hz) to remove turntable rumble
+  - Lowpass filter (10000-20000 Hz) to remove hiss and high-frequency noise
+  - FFT-based denoiser with adjustable strength (0.1-1.0)
+- All filters are optional and disabled by default
+
 ## [1.2.0] - 2026-02-02
 
 ### Changed

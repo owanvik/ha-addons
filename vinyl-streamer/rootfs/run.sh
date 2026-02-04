@@ -16,6 +16,17 @@ AUDIO_CHANNELS=$(bashio::config 'audio_channels')
 AUDIO_BITRATE=$(bashio::config 'audio_bitrate')
 ICECAST_PASSWORD=$(bashio::config 'icecast_password')
 
+# Low latency mode
+LOW_LATENCY=$(bashio::config 'low_latency')
+
+# Noise reduction settings
+HIGHPASS_ENABLED=$(bashio::config 'noise_reduction.highpass_enabled')
+HIGHPASS_FREQ=$(bashio::config 'noise_reduction.highpass_freq')
+LOWPASS_ENABLED=$(bashio::config 'noise_reduction.lowpass_enabled')
+LOWPASS_FREQ=$(bashio::config 'noise_reduction.lowpass_freq')
+DENOISE_ENABLED=$(bashio::config 'noise_reduction.denoise_enabled')
+DENOISE_STRENGTH=$(bashio::config 'noise_reduction.denoise_strength')
+
 # Get audio input from HA's built-in audio selector
 if bashio::var.has_value "$(bashio::addon.audio_input)"; then
     AUDIO_DEVICE=$(bashio::addon.audio_input)
@@ -49,6 +60,16 @@ if [ -z "$HA_IP" ]; then
     HA_IP="localhost"
 fi
 
+# Set Icecast buffer sizes based on latency mode
+if bashio::var.true "${LOW_LATENCY}"; then
+    QUEUE_SIZE=131072
+    BURST_SIZE=8192
+    bashio::log.info "Low latency mode: enabled (may cause stuttering on slow networks)"
+else
+    QUEUE_SIZE=524288
+    BURST_SIZE=65535
+fi
+
 # Generate Icecast configuration
 cat > /etc/icecast/icecast.xml << EOF
 <icecast>
@@ -57,12 +78,12 @@ cat > /etc/icecast/icecast.xml << EOF
     <limits>
         <clients>10</clients>
         <sources>2</sources>
-        <queue-size>524288</queue-size>
+        <queue-size>${QUEUE_SIZE}</queue-size>
         <client-timeout>30</client-timeout>
         <header-timeout>15</header-timeout>
         <source-timeout>10</source-timeout>
         <burst-on-connect>1</burst-on-connect>
-        <burst-size>65535</burst-size>
+        <burst-size>${BURST_SIZE}</burst-size>
     </limits>
     <authentication>
         <source-password>${ICECAST_PASSWORD}</source-password>
@@ -136,6 +157,37 @@ fi
 
 bashio::log.info "Using ${INPUT_FORMAT} input: ${INPUT_DEVICE}"
 bashio::log.info "Stream URL: http://${HA_IP}:8000${MOUNT_POINT}"
+
+# Build audio filter chain
+AUDIO_FILTERS=""
+
+if bashio::var.true "${HIGHPASS_ENABLED}"; then
+    AUDIO_FILTERS="highpass=f=${HIGHPASS_FREQ}"
+    bashio::log.info "Highpass filter: ${HIGHPASS_FREQ} Hz (removes rumble)"
+fi
+
+if bashio::var.true "${LOWPASS_ENABLED}"; then
+    if [ -n "${AUDIO_FILTERS}" ]; then
+        AUDIO_FILTERS="${AUDIO_FILTERS},lowpass=f=${LOWPASS_FREQ}"
+    else
+        AUDIO_FILTERS="lowpass=f=${LOWPASS_FREQ}"
+    fi
+    bashio::log.info "Lowpass filter: ${LOWPASS_FREQ} Hz (removes hiss)"
+fi
+
+if bashio::var.true "${DENOISE_ENABLED}"; then
+    if [ -n "${AUDIO_FILTERS}" ]; then
+        AUDIO_FILTERS="${AUDIO_FILTERS},afftdn=nf=-25:nr=${DENOISE_STRENGTH}:nt=w"
+    else
+        AUDIO_FILTERS="afftdn=nf=-25:nr=${DENOISE_STRENGTH}:nt=w"
+    fi
+    bashio::log.info "Noise reduction: strength ${DENOISE_STRENGTH}"
+fi
+
+if [ -z "${AUDIO_FILTERS}" ]; then
+    bashio::log.info "Audio filters: none"
+fi
+
 bashio::log.info ""
 bashio::log.info "TIP: Create a switch in HA to control streaming:"
 bashio::log.info "  See DOCS for template switch configuration"
@@ -153,16 +205,24 @@ trap cleanup SIGTERM SIGINT
 while true; do
     bashio::log.info "Starting FFmpeg encoder..."
     
-    ffmpeg -hide_banner -loglevel warning \
-        -f "${INPUT_FORMAT}" \
-        -i "${INPUT_DEVICE}" \
-        -acodec libmp3lame \
-        -ab "${AUDIO_BITRATE}k" \
-        -ac "${AUDIO_CHANNELS}" \
-        -ar "${AUDIO_SAMPLERATE}" \
-        -content_type audio/mpeg \
-        -f mp3 \
-        "icecast://source:${ICECAST_PASSWORD}@localhost:8000${MOUNT_POINT}" &
+    # Build FFmpeg command
+    FFMPEG_CMD="ffmpeg -hide_banner -loglevel warning"
+
+    # Add low latency flags if enabled
+    if bashio::var.true "${LOW_LATENCY}"; then
+        FFMPEG_CMD="${FFMPEG_CMD} -fflags nobuffer -flags low_delay"
+    fi
+
+    FFMPEG_CMD="${FFMPEG_CMD} -f ${INPUT_FORMAT} -i ${INPUT_DEVICE}"
+
+    # Add audio filters if any
+    if [ -n "${AUDIO_FILTERS}" ]; then
+        FFMPEG_CMD="${FFMPEG_CMD} -af ${AUDIO_FILTERS}"
+    fi
+
+    FFMPEG_CMD="${FFMPEG_CMD} -acodec libmp3lame -ab ${AUDIO_BITRATE}k -ac ${AUDIO_CHANNELS} -ar ${AUDIO_SAMPLERATE} -content_type audio/mpeg -f mp3"
+
+    ${FFMPEG_CMD} "icecast://source:${ICECAST_PASSWORD}@localhost:8000${MOUNT_POINT}" &
     
     FFMPEG_PID=$!
     
