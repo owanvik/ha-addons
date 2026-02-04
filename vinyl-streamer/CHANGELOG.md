@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.7] - 2026-02-04
+
+### Fixed
+- Fixed translations for nested fields using "fields" key structure
+
 ## [1.7.6] - 2026-02-04
 
 ### Fixed
