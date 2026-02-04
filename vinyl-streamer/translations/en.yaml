@@ -4,7 +4,7 @@ configuration:
     description: Reduces dynamic range - makes quiet parts louder and loud parts quieter.
   volume_db:
     name: Volume (dB)
-    description: Adjust output volume. 20 = no change, lower = quieter, higher = louder. Range 0-40 (maps to -20 to +20 dB).
+    description: Adjust output volume. 0 dB = no change, negative = quieter, positive = louder.
   station_name:
     name: Station Name
     description: The name that appears in media players when streaming. Shows up in Music Assistant, VLC, etc.
