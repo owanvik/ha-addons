@@ -2,6 +2,9 @@ configuration:
   compressor_enabled:
     name: Audio Compressor
     description: Reduces dynamic range - makes quiet parts louder and loud parts quieter.
+  volume_boost:
+    name: Volume Boost (dB)
+    description: Increase output volume. 0 = no change, higher = louder (0-20 dB).
   station_name:
     name: Station Name
     description: The name that appears in media players when streaming. Shows up in Music Assistant, VLC, etc.

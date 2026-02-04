@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.8.5] - 2026-02-04
+
+### Added
+- Testing: Added volume_boost with int(0,20) - no negative numbers
+
 ## [1.8.4] - 2026-02-04
 
 ### Added
