@@ -8,21 +8,24 @@ configuration:
   mount_point:
     name: Mount Point
     description: URL path for the stream (e.g., /vinyl)
-  audio_samplerate:
-    name: Sample Rate
-    description: Audio sample rate in Hz
-  audio_channels:
-    name: Channels
-    description: Number of audio channels
-  audio_bitrate:
-    name: Bitrate
-    description: MP3 bitrate in kbps
   icecast_password:
     name: Icecast Password
     description: Password for Icecast source connection
   low_latency:
     name: Low Latency Mode
     description: Reduce stream delay (may cause stuttering)
+  audio_quality:
+    name: Audio Quality
+    description: Audio encoding settings
+    samplerate:
+      name: Sample Rate
+      description: Audio sample rate in Hz
+    channels:
+      name: Channels
+      description: Number of audio channels
+    bitrate:
+      name: Bitrate
+      description: MP3 bitrate in kbps
   noise_reduction:
     name: Noise Reduction
     description: Audio filters to reduce noise

@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.2] - 2026-02-04
+
+### Changed
+- Grouped audio settings (samplerate, channels, bitrate) into collapsible "Audio Quality" section
+
 ## [1.7.1] - 2026-02-04
 
 ### Changed
