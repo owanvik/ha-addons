@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.2] - 2026-02-04
+
+### Fixed
+- Changed numeric list values to text labels (stereo_width, denoise_strength) to fix add-on visibility
+
 ## [1.9.1] - 2026-02-04
 
 ### Fixed

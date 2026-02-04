@@ -1,6 +1,6 @@
 name: "Vinyl Streamer"
 description: "Stream audio from USB input to Icecast (FFmpeg + Icecast)"
-version: "1.9.1"
+version: "1.9.2"
 slug: "vinyl-streamer"
 init: false
 arch:
@@ -36,14 +36,14 @@ options:
     compressor_enabled: false
     compressor_threshold: -20
     compressor_ratio: 4
-    stereo_width: "1.0 (Default)"
+    stereo_width: "Normal (Default)"
   noise_reduction:
     highpass_enabled: false
     highpass_freq: 30
     lowpass_enabled: false
     lowpass_freq: 16000
     denoise_enabled: false
-    denoise_strength: "0.3 (Default)"
+    denoise_strength: "Low (Default)"
   icecast:
     max_listeners: 10
     genre: "Vinyl"
@@ -67,14 +67,14 @@ schema:
     compressor_enabled: bool
     compressor_threshold: "int(-60,0)"
     compressor_ratio: "int(1,20)"
-    stereo_width: "list(0.0|0.5|1.0 (Default)|1.5|2.0)"
+    stereo_width: "list(Mono|Narrow|Normal (Default)|Wide|Extra Wide)"
   noise_reduction:
     highpass_enabled: bool
     highpass_freq: "int(20,100)"
     lowpass_enabled: bool
     lowpass_freq: "int(10000,20000)"
     denoise_enabled: bool
-    denoise_strength: "list(0.1|0.2|0.3 (Default)|0.5|0.7|1.0)"
+    denoise_strength: "list(Low (Default)|Medium|High)"
   icecast:
     max_listeners: "int(1,100)"
     genre: str
