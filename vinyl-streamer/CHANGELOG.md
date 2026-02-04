@@ -1,9 +1,15 @@
 # Changelog
 
+## [1.8.7] - 2026-02-04
+
+### Fixed
+- Volume control now uses int(0,40) with offset (HA doesn't support negative int ranges)
+- 20 = no change, 0 = -20dB, 40 = +20dB
+
 ## [1.8.6] - 2026-02-04
 
 ### Added
-- Testing: Changed volume_boost to int(-20,20) - testing negative numbers
+- Testing: Changed volume_boost to int(-20,20) - testing negative numbers (BROKE)
 
 ## [1.8.5] - 2026-02-04
 

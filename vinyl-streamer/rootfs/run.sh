@@ -21,7 +21,9 @@ ICECAST_PASSWORD=$(bashio::config 'icecast_password')
 LOW_LATENCY=$(bashio::config 'low_latency')
 
 # Audio processing settings (root level)
-VOLUME_DB=$(bashio::config 'volume_db')
+# volume_db is 0-40 in config, we convert to -20 to +20
+VOLUME_DB_RAW=$(bashio::config 'volume_db')
+VOLUME_DB=$((VOLUME_DB_RAW - 20))
 COMPRESSOR_ENABLED=$(bashio::config 'compressor_enabled')
 
 # Noise reduction settings
