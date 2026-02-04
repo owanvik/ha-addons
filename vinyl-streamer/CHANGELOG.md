@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.8.9] - 2026-02-04
+
+### Changed
+- Volume control uses dropdown with -10 to +10 dB in 2 dB steps
+
 ## [1.8.8] - 2026-02-04
 
 ### Changed
