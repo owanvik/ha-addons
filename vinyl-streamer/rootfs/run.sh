@@ -58,7 +58,7 @@ VOLUME_DB=$(bashio::config 'audio_processing.volume_db')
 COMPRESSOR_ENABLED=$(bashio::config 'audio_processing.compressor_enabled')
 COMPRESSOR_THRESHOLD=$(bashio::config 'audio_processing.compressor_threshold')
 COMPRESSOR_RATIO=$(bashio::config 'audio_processing.compressor_ratio')
-STEREO_WIDTH=$(bashio::config 'audio_processing.stereo_width')
+STEREO_WIDTH=$(bashio::config 'audio_processing.stereo_width' | sed 's/ (Default)//')
 
 # Noise reduction
 HIGHPASS_ENABLED=$(bashio::config 'noise_reduction.highpass_enabled')
@@ -66,7 +66,7 @@ HIGHPASS_FREQ=$(bashio::config 'noise_reduction.highpass_freq')
 LOWPASS_ENABLED=$(bashio::config 'noise_reduction.lowpass_enabled')
 LOWPASS_FREQ=$(bashio::config 'noise_reduction.lowpass_freq')
 DENOISE_ENABLED=$(bashio::config 'noise_reduction.denoise_enabled')
-DENOISE_STRENGTH=$(bashio::config 'noise_reduction.denoise_strength')
+DENOISE_STRENGTH=$(bashio::config 'noise_reduction.denoise_strength' | sed 's/ (Default)//')
 
 # Icecast settings
 MAX_LISTENERS=$(bashio::config 'icecast.max_listeners')

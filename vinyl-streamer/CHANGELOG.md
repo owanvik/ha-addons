@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.9.1] - 2026-02-04
+
+### Fixed
+- Changed float schema types to list to fix add-on visibility (stereo_width, denoise_strength)
+
 ## [1.9.0] - 2026-02-04
 
 ### Added
