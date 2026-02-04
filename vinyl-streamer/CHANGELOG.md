@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.3] - 2026-02-04
+
+### Fixed
+- Simplified noise reduction labels (Highpass, Lowpass, Denoise instead of technical names)
+
 ## [1.7.2] - 2026-02-04
 
 ### Changed

@@ -30,19 +30,19 @@ configuration:
     name: Noise Reduction
     description: Audio filters to reduce noise
     highpass_enabled:
-      name: Enable Highpass Filter
+      name: Highpass
       description: Remove low-frequency rumble
     highpass_freq:
-      name: Highpass Frequency (Hz)
-      description: Cutoff frequency for rumble filter (20-100 Hz)
+      name: Highpass Frequency
+      description: Cutoff frequency in Hz (20-100)
     lowpass_enabled:
-      name: Enable Lowpass Filter
+      name: Lowpass
       description: Remove high-frequency hiss
     lowpass_freq:
-      name: Lowpass Frequency (Hz)
-      description: Cutoff frequency for hiss filter (10000-20000 Hz)
+      name: Lowpass Frequency
+      description: Cutoff frequency in Hz (10000-20000)
     denoise_enabled:
-      name: Enable Noise Reduction
+      name: Denoise
       description: FFT-based noise reduction
     denoise_strength:
       name: Denoise Strength
