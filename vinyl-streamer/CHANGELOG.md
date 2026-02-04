@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.8.10] - 2026-02-04
+
+### Changed
+- Added -1 dB and +1 dB options to volume control
+
 ## [1.8.9] - 2026-02-04
 
 ### Changed
