@@ -40,15 +40,15 @@ schema:
   station_name: str
   station_description: str
   mount_point: str
-  audio_samplerate: select(44100|48000)
-  audio_channels: select(1|2)
-  audio_bitrate: select(128|192|256|320)
-  icecast_password: password
+  audio_samplerate: "list(44100|48000)"
+  audio_channels: "list(1|2)"
+  audio_bitrate: "list(128|192|256|320)"
+  icecast_password: str
   low_latency: bool
   noise_reduction:
     highpass_enabled: bool
-    highpass_freq: int(20,100)
+    highpass_freq: "int(20,100)"
     lowpass_enabled: bool
-    lowpass_freq: int(10000,20000)
+    lowpass_freq: "int(10000,20000)"
     denoise_enabled: bool
-    denoise_strength: float(0.1,1.0)
+    denoise_strength: "float(0.1,1.0)"
