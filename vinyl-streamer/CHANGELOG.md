@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.9.3] - 2026-02-04
+
+### Fixed
+- Removed stereo_width option temporarily to fix add-on visibility
+- Reverted to str type for password and float for denoise_strength (same as working 1.7.7)
+
 ## [1.9.2] - 2026-02-04
 
 ### Fixed

@@ -32,7 +32,7 @@ configuration:
         description: Higher = better quality. 320 kbps is near CD quality, 256 is excellent, 192 is good, 128 is acceptable for background music.
   audio_processing:
     name: Audio Processing
-    description: Adjust volume, dynamics, and stereo image of the audio signal.
+    description: Adjust volume and dynamics of the audio signal.
     fields:
       volume_db:
         name: Volume (dB)
@@ -46,9 +46,6 @@ configuration:
       compressor_ratio:
         name: Compressor Ratio
         description: How much to compress. 4:1 is moderate, 8:1 is strong, 20:1 is limiting. Range 1 to 20.
-      stereo_width:
-        name: Stereo Width
-        description: Adjust stereo image. Mono collapses to center, Normal is unchanged, Wide expands the soundstage.
   noise_reduction:
     name: Noise Reduction
     description: Audio filters to reduce unwanted noise from vinyl playback.
@@ -70,7 +67,7 @@ configuration:
         description: Advanced FFT-based noise reduction. Reduces constant background noise like hum or tape hiss.
       denoise_strength:
         name: De-noise Strength
-        description: How aggressively to reduce noise. Low is subtle, High is aggressive but may affect audio quality.
+        description: How aggressively to reduce noise. 0.1-0.3 is subtle, 0.5-1.0 is aggressive but may affect audio quality.
   icecast:
     name: Icecast Server
     description: Configure the streaming server settings.

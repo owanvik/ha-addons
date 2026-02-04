@@ -58,31 +58,13 @@ VOLUME_DB=$(bashio::config 'audio_processing.volume_db')
 COMPRESSOR_ENABLED=$(bashio::config 'audio_processing.compressor_enabled')
 COMPRESSOR_THRESHOLD=$(bashio::config 'audio_processing.compressor_threshold')
 COMPRESSOR_RATIO=$(bashio::config 'audio_processing.compressor_ratio')
-# Convert stereo width label to numeric value
-STEREO_WIDTH_LABEL=$(bashio::config 'audio_processing.stereo_width' | sed 's/ (Default)//')
-case "${STEREO_WIDTH_LABEL}" in
-    "Mono") STEREO_WIDTH="0.0" ;;
-    "Narrow") STEREO_WIDTH="0.5" ;;
-    "Normal") STEREO_WIDTH="1.0" ;;
-    "Wide") STEREO_WIDTH="1.5" ;;
-    "Extra Wide") STEREO_WIDTH="2.0" ;;
-    *) STEREO_WIDTH="1.0" ;;
-esac
-
 # Noise reduction
 HIGHPASS_ENABLED=$(bashio::config 'noise_reduction.highpass_enabled')
 HIGHPASS_FREQ=$(bashio::config 'noise_reduction.highpass_freq')
 LOWPASS_ENABLED=$(bashio::config 'noise_reduction.lowpass_enabled')
 LOWPASS_FREQ=$(bashio::config 'noise_reduction.lowpass_freq')
 DENOISE_ENABLED=$(bashio::config 'noise_reduction.denoise_enabled')
-# Convert denoise strength label to numeric value
-DENOISE_STRENGTH_LABEL=$(bashio::config 'noise_reduction.denoise_strength' | sed 's/ (Default)//')
-case "${DENOISE_STRENGTH_LABEL}" in
-    "Low") DENOISE_STRENGTH="0.3" ;;
-    "Medium") DENOISE_STRENGTH="0.5" ;;
-    "High") DENOISE_STRENGTH="0.8" ;;
-    *) DENOISE_STRENGTH="0.3" ;;
-esac
+DENOISE_STRENGTH=$(bashio::config 'noise_reduction.denoise_strength')
 
 # Icecast settings
 MAX_LISTENERS=$(bashio::config 'icecast.max_listeners')
@@ -105,7 +87,7 @@ fi
 # ==============================================================================
 
 bashio::log.info "=============================================="
-bashio::log.info "Vinyl Streamer v1.9.2"
+bashio::log.info "Vinyl Streamer v1.9.3"
 bashio::log.info "=============================================="
 bashio::log.info "Station: ${STATION_NAME}"
 bashio::log.info "Mount: ${MOUNT_POINT}"
@@ -260,16 +242,6 @@ AUDIO_FILTERS=""
 if [ "${VOLUME_DB}" != "0" ]; then
     AUDIO_FILTERS="volume=${VOLUME_DB}dB"
     bashio::log.info "Volume: ${VOLUME_DB} dB"
-fi
-
-# Stereo width (only if not mono and not 1.0)
-if [ "${AUDIO_CHANNELS}" = "2" ] && [ "${STEREO_WIDTH}" != "1.0" ]; then
-    if [ -n "${AUDIO_FILTERS}" ]; then
-        AUDIO_FILTERS="${AUDIO_FILTERS},stereotools=mlev=${STEREO_WIDTH}"
-    else
-        AUDIO_FILTERS="stereotools=mlev=${STEREO_WIDTH}"
-    fi
-    bashio::log.info "Stereo width: ${STEREO_WIDTH}"
 fi
 
 # Compressor
