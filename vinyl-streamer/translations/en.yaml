@@ -28,22 +28,22 @@ configuration:
       description: MP3 bitrate in kbps
   noise_reduction:
     name: Noise Reduction
-    description: Audio filters to reduce noise
+    description: Audio filters to reduce unwanted noise from vinyl playback
     highpass_enabled:
       name: Highpass
-      description: Remove low-frequency rumble
+      description: Removes low-frequency rumble from turntable motor and vibrations. Recommended for most setups.
     highpass_freq:
       name: Highpass Frequency
-      description: Cutoff frequency in Hz (20-100)
+      description: Frequencies below this value are filtered out. Default 30 Hz removes rumble while preserving bass.
     lowpass_enabled:
       name: Lowpass
-      description: Remove high-frequency hiss
+      description: Removes high-frequency hiss and noise from worn records or preamp noise.
     lowpass_freq:
       name: Lowpass Frequency
-      description: Cutoff frequency in Hz (10000-20000)
+      description: Frequencies above this value are filtered out. Default 16000 Hz removes hiss while preserving detail.
     denoise_enabled:
       name: De-noise
-      description: FFT-based noise reduction
+      description: Advanced FFT-based noise reduction. Reduces constant background noise like hum or tape hiss.
     denoise_strength:
       name: De-noise Strength
-      description: Noise reduction intensity (0.1-1.0)
+      description: How aggressively to reduce noise. Lower values (0.1-0.3) are subtle, higher values (0.5-1.0) more aggressive but may affect audio quality.

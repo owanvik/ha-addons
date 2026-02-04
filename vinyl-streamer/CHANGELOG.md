@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.7.5] - 2026-02-04
+
+### Changed
+- Added detailed descriptions for noise reduction options explaining how each filter works
+
 ## [1.7.4] - 2026-02-04
 
 ### Fixed
