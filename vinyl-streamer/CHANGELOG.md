@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.3] - 2026-02-05
+
+### Fixed
+- Set explicit channel layout for FFmpeg to avoid "Guessed Channel Layout" warning
+
+---
+
 ## [2.0.2] - 2026-02-05
 
 ### Changed

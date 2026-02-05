@@ -311,7 +311,7 @@ start_recording() {
 
     # Start separate FFmpeg for recording
     ffmpeg -hide_banner -loglevel warning \
-        -f ${INPUT_FORMAT} -i ${INPUT_DEVICE} \
+        -f ${INPUT_FORMAT} -channel_layout stereo -i ${INPUT_DEVICE} \
         ${AUDIO_FILTERS:+-af ${AUDIO_FILTERS}} \
         ${codec_args} -ac ${AUDIO_CHANNELS} -ar ${AUDIO_SAMPLERATE} \
         "${RECORDING_FILE}" &
@@ -430,7 +430,7 @@ mqtt_discovery() {
     local discovery_prefix="homeassistant"
 
     # Device info (shared by all entities)
-    local device_info='"device":{"identifiers":["vinyl_streamer"],"name":"Vinyl Streamer","manufacturer":"owanvik","model":"HA App","sw_version":"2.0.2"}'
+    local device_info='"device":{"identifiers":["vinyl_streamer"],"name":"Vinyl Streamer","manufacturer":"owanvik","model":"HA App","sw_version":"2.0.3"}'
 
     # Binary sensor: Streaming status
     local config_topic="${discovery_prefix}/binary_sensor/${device_id}/streaming/config"
@@ -518,7 +518,7 @@ while true; do
         FFMPEG_CMD="${FFMPEG_CMD} -fflags nobuffer -flags low_delay"
     fi
 
-    FFMPEG_CMD="${FFMPEG_CMD} -f ${INPUT_FORMAT} -i ${INPUT_DEVICE}"
+    FFMPEG_CMD="${FFMPEG_CMD} -f ${INPUT_FORMAT} -channel_layout stereo -i ${INPUT_DEVICE}"
 
     # Add audio filters if any
     if [ -n "${AUDIO_FILTERS}" ]; then
