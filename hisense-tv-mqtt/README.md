@@ -1,6 +1,5 @@
 # Hisense TV MQTT Bridge
 
-[![Add Repository](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fowanvik%2Fha-addons)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Control your Hisense VIDAA Smart TV from Home Assistant via MQTT.
@@ -21,6 +20,8 @@ Control your Hisense VIDAA Smart TV from Home Assistant via MQTT.
 - Home Assistant with MQTT broker (e.g., Mosquitto)
 
 ## Installation
+
+[![Add Repository](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fowanvik%2Fha-addons)
 
 1. Click the button above, or add repository: `https://github.com/owanvik/ha-addons`
 2. Install **Hisense TV MQTT Bridge**

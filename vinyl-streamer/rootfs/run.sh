@@ -430,7 +430,7 @@ mqtt_discovery() {
     local discovery_prefix="homeassistant"
 
     # Device info (shared by all entities)
-    local device_info='"device":{"identifiers":["vinyl_streamer"],"name":"Vinyl Streamer","manufacturer":"owanvik","model":"HA App","sw_version":"2.0.1"}'
+    local device_info='"device":{"identifiers":["vinyl_streamer"],"name":"Vinyl Streamer","manufacturer":"owanvik","model":"HA App","sw_version":"2.0.2"}'
 
     # Binary sensor: Streaming status
     local config_topic="${discovery_prefix}/binary_sensor/${device_id}/streaming/config"

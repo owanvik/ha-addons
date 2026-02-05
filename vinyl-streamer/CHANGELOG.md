@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.2] - 2026-02-05
+
+### Changed
+- Moved "Add Repository" button under Installation section in README
+
+---
+
 ## [2.0.1] - 2026-02-05
 
 ### Changed
