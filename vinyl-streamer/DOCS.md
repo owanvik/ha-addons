@@ -68,11 +68,10 @@ Most USB audio devices with standard UAC (USB Audio Class) drivers work. Avoid d
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `volume_db` | Volume adjustment (-20 to +20 dB) | 0 |
+| `volume_db` | Volume adjustment (-10 to +10 dB) | 0 dB |
 | `compressor_enabled` | Enable dynamic range compression | false |
-| `compressor_threshold` | When compression starts (-60 to 0 dB) | -20 |
-| `compressor_ratio` | Compression ratio (1-20) | 4 |
-| `stereo_width` | Stereo image (0=mono, 1=normal, 2=wide) | 1.0 |
+| `compressor_threshold` | When compression starts (-40 to -5 dB) | -20 dB |
+| `compressor_ratio` | Compression ratio (2:1 to 20:1) | 4:1 |
 
 **When to use the compressor:**
 - Records with inconsistent volume between tracks
@@ -109,15 +108,21 @@ Most USB audio devices with standard UAC (USB Audio Class) drivers work. Avoid d
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `enabled` | Enable recording to file | false |
-| `format` | Recording format (mp3 or flac) | mp3 |
+| `format` | Recording format (MP3 or FLAC) | MP3 |
 | `path` | Directory to save recordings | /share/vinyl-recordings |
 
+**Starting/stopping recordings:**
+- **MQTT buttons:** Use the auto-created HA buttons (requires MQTT enabled)
+- **MQTT command:** Publish to `vinyl_streamer/command`:
+  - `start_recording` - Start recording
+  - `stop_recording` - Stop recording
+- **Automation:** See examples below
+
 **Recording notes:**
-- A new file is created each time the add-on starts
 - Files are named `vinyl_YYYYMMDD_HHMMSS.mp3` (or .flac)
-- FLAC files are larger but lossless - good for archiving
-- Recordings are saved to `/share/` which is accessible from HA file browser
+- FLAC is lossless - larger files but perfect for archiving
+- Recordings saved to `/share/` accessible from HA file browser
+- Recording continues until stopped or add-on restarts
 
 ### Low Latency Mode
 
@@ -132,7 +137,29 @@ If you experience audio dropouts, disable this option.
 
 ## Home Assistant Integration
 
-The add-on creates a status file that you can use to create HA sensors.
+### MQTT Integration (Recommended)
+
+The easiest way to integrate with Home Assistant. Enable MQTT in settings and sensors/controls are created automatically.
+
+**Requirements:** Mosquitto broker add-on (or external MQTT broker)
+
+**Auto-created entities:**
+- `binary_sensor.vinyl_streamer_streaming` - Stream status
+- `binary_sensor.vinyl_streamer_recording` - Recording status
+- `sensor.vinyl_streamer_format` - Current audio format
+- `sensor.vinyl_streamer_bitrate` - Current bitrate
+- `sensor.vinyl_streamer_uptime` - Uptime in seconds
+- `sensor.vinyl_streamer_url` - Stream URL
+- `button.vinyl_streamer_start_recording` - Start recording
+- `button.vinyl_streamer_stop_recording` - Stop recording
+
+**Setup:**
+1. Install Mosquitto broker add-on (if not already installed)
+2. Enable "MQTT Discovery" in Vinyl Streamer settings
+3. Restart the add-on
+4. Entities appear automatically under "Vinyl Streamer" device
+
+**Manual MQTT broker:** If using an external broker, fill in host/username/password. Leave empty to auto-detect Mosquitto.
 
 ### Status File
 
@@ -140,12 +167,17 @@ Location: `/share/vinyl-streamer/status.json`
 
 ```json
 {
-    "streaming": true,
-    "recording": false,
-    "format": "mp3",
-    "bitrate": 320,
-    "uptime_seconds": 3600,
-    "last_update": "2026-02-04T15:30:00+00:00"
+  "streaming": true,
+  "recording": false,
+  "recording_file": "",
+  "uptime_seconds": 3600,
+  "format": "MP3",
+  "bitrate": 320,
+  "samplerate": 44100,
+  "channels": 2,
+  "station_name": "Vinyl Radio",
+  "mount_point": "/vinyl",
+  "stream_url": "http://192.168.1.50:8000/vinyl"
 }
 ```
 
@@ -240,7 +272,32 @@ automation:
           addon: local_vinyl-streamer
 ```
 
-#### Start/stop with a physical button
+#### Start/stop recording with a button
+
+```yaml
+automation:
+  - alias: "Toggle vinyl recording"
+    trigger:
+      - platform: state
+        entity_id: sensor.vinyl_button_action
+        to: "double"
+    action:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.vinyl_streamer_recording
+                state: "on"
+            sequence:
+              - service: button.press
+                target:
+                  entity_id: button.vinyl_streamer_stop_recording
+        default:
+          - service: button.press
+            target:
+              entity_id: button.vinyl_streamer_start_recording
+```
+
+#### Start/stop streaming with a physical button
 
 Using a Zigbee/Z-Wave button:
 

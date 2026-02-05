@@ -1,5 +1,31 @@
 # Changelog
 
+## [2.0.0] - 2026-02-05
+
+### Major Release 🎉
+Full Home Assistant integration with MQTT Discovery, recording controls, and improved stability.
+
+### Highlights
+- **MQTT Discovery**: Sensors and controls auto-created in Home Assistant
+- **Recording via MQTT**: Start/stop recording with HA buttons
+- **Audio Format Selection**: MP3, AAC, or Opus encoding
+- **Compressor Controls**: Threshold and ratio settings
+- **Reorganized UI**: Collapsible settings sections
+
+### All Features Since 1.7.7
+- MQTT Discovery with auto-detection of Mosquitto broker
+- Recording to MP3 or FLAC via MQTT commands
+- Audio format selection (MP3/AAC/Opus)
+- Volume adjustment (-10 to +10 dB)
+- Compressor with threshold (-40 to -5 dB) and ratio (2:1 to 20:1)
+- Max listeners and genre tag configuration
+- Status file for HA sensors
+- XML escape for security
+- Exponential backoff on FFmpeg restart
+- Port verification before streaming
+
+---
+
 ## [1.8.15] - 2026-02-04
 
 ### Added
