@@ -94,3 +94,13 @@ configuration:
       password:
         name: MQTT Password
         description: Leave empty to use Mosquitto add-on credentials automatically.
+  recording:
+    name: Recording
+    description: Save audio to files. Start/stop recording via MQTT or Home Assistant.
+    fields:
+      format:
+        name: Recording Format
+        description: MP3 for smaller files, FLAC for lossless quality.
+      path:
+        name: Recording Path
+        description: Where to save recordings. Must be under /share/ to access from HA.

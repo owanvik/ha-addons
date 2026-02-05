@@ -7,9 +7,16 @@
 
 set -e
 
+# XML escape function for security
+xml_escape() {
+    echo "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&apos;/g'
+}
+
 # Read configuration
-STATION_NAME=$(bashio::config 'station_name')
-STATION_DESC=$(bashio::config 'station_description')
+STATION_NAME_RAW=$(bashio::config 'station_name')
+STATION_DESC_RAW=$(bashio::config 'station_description')
+STATION_NAME=$(xml_escape "${STATION_NAME_RAW}")
+STATION_DESC=$(xml_escape "${STATION_DESC_RAW}")
 MOUNT_POINT=$(bashio::config 'mount_point')
 ICECAST_PASSWORD=$(bashio::config 'icecast_password')
 LOW_LATENCY=$(bashio::config 'low_latency')
@@ -21,13 +28,10 @@ AUDIO_CHANNELS=$(bashio::config 'audio_quality.channels' | sed 's/ (Default)//')
 AUDIO_BITRATE=$(bashio::config 'audio_quality.bitrate' | sed 's/ (Default)//')
 
 # Audio processing settings
-# volume_db is a string like "-6 dB" or "+4 dB", extract the number
 VOLUME_DB_RAW=$(bashio::config 'audio_processing.volume_db' | sed 's/ dB.*//;s/+//')
 VOLUME_DB="${VOLUME_DB_RAW}"
 COMPRESSOR_ENABLED=$(bashio::config 'audio_processing.compressor_enabled')
-# Extract threshold number from "-20 dB (Default)" -> -20
 COMPRESSOR_THRESHOLD=$(bashio::config 'audio_processing.compressor_threshold' | sed 's/ dB.*//;s/ (Default)//')
-# Extract ratio number from "4:1 (Default)" -> 4
 COMPRESSOR_RATIO=$(bashio::config 'audio_processing.compressor_ratio' | sed 's/:1.*//;s/ (Default)//')
 
 # Noise reduction settings
@@ -40,13 +44,21 @@ DENOISE_STRENGTH=$(bashio::config 'noise_reduction.denoise_strength')
 
 # Icecast settings
 MAX_LISTENERS=$(bashio::config 'icecast.max_listeners')
-GENRE=$(bashio::config 'icecast.genre')
+GENRE_RAW=$(bashio::config 'icecast.genre')
+GENRE=$(xml_escape "${GENRE_RAW}")
 
 # MQTT settings
 MQTT_ENABLED=$(bashio::config 'mqtt.enabled')
 MQTT_HOST=$(bashio::config 'mqtt.host')
 MQTT_USERNAME=$(bashio::config 'mqtt.username')
 MQTT_PASSWORD=$(bashio::config 'mqtt.password')
+
+# Recording settings
+RECORDING_FORMAT=$(bashio::config 'recording.format' | sed 's/ (Default)//')
+RECORDING_PATH=$(bashio::config 'recording.path')
+RECORDING_ACTIVE=false
+RECORDING_PID=""
+RECORDING_FILE=""
 
 # Get audio input from HA's built-in audio selector
 if bashio::var.has_value "$(bashio::addon.audio_input)"; then
@@ -56,14 +68,19 @@ else
 fi
 
 bashio::log.info "Starting Vinyl Streamer..."
-bashio::log.info "Station: ${STATION_NAME}"
+bashio::log.info "Station: ${STATION_NAME_RAW}"
 bashio::log.info "Mount: ${MOUNT_POINT}"
 bashio::log.info "Audio input: ${AUDIO_DEVICE}"
 bashio::log.info "Format: ${AUDIO_FORMAT} @ ${AUDIO_BITRATE}kbps"
 
-# Create status directory
+# Create directories
 mkdir -p /share/vinyl-streamer
+mkdir -p "${RECORDING_PATH}"
 START_TIME=$(date +%s)
+
+# Restart tracking for exponential backoff
+RESTART_COUNT=0
+LAST_STABLE_TIME=${START_TIME}
 
 # Create icecast user
 addgroup -S icecast 2>/dev/null || true
@@ -149,29 +166,32 @@ cat > /etc/icecast/icecast.xml << EOF
     </security>
 </icecast>
 EOF
+chmod 600 /etc/icecast/icecast.xml
 
 # Start Icecast
 bashio::log.info "Starting Icecast server..."
 icecast -c /etc/icecast/icecast.xml &
 ICECAST_PID=$!
-sleep 3
 
-if ! kill -0 $ICECAST_PID 2>/dev/null; then
-    bashio::log.error "Icecast failed to start!"
+# Wait for Icecast to be ready (port check)
+for i in $(seq 1 10); do
+    if nc -z localhost 8000 2>/dev/null; then
+        break
+    fi
+    sleep 1
+done
+
+if ! nc -z localhost 8000 2>/dev/null; then
+    bashio::log.error "Icecast failed to start (port 8000 not open)!"
     exit 1
 fi
 bashio::log.info "Icecast started on port 8000"
-
-# Get HA IP address
-HA_IP=$(bashio::network.ipv4_address | head -1 | cut -d'/' -f1)
-if [ -z "${HA_IP}" ]; then
-    HA_IP="[YOUR_HA_IP]"
-fi
 
 # Setup MQTT if enabled (after HA_IP is set)
 if bashio::var.true "${MQTT_ENABLED}"; then
     if setup_mqtt; then
         mqtt_discovery
+        mqtt_subscribe_commands &
     fi
 fi
 
@@ -241,8 +261,10 @@ if [ -z "${AUDIO_FILTERS}" ]; then
 fi
 
 bashio::log.info ""
-bashio::log.info "TIP: Create a switch in HA to control streaming:"
-bashio::log.info "  See DOCS for template switch configuration"
+bashio::log.info "Recording path: ${RECORDING_PATH}"
+if bashio::var.true "${MQTT_ENABLED}"; then
+    bashio::log.info "MQTT commands: vinyl_streamer/command (start_recording, stop_recording)"
+fi
 
 # Write status file for HA integration
 write_status() {
@@ -253,16 +275,82 @@ write_status() {
     cat > /share/vinyl-streamer/status.json << EOF
 {
   "streaming": ${streaming},
+  "recording": ${RECORDING_ACTIVE},
+  "recording_file": "${RECORDING_FILE}",
   "uptime_seconds": ${uptime},
   "format": "${AUDIO_FORMAT}",
   "bitrate": ${AUDIO_BITRATE},
   "samplerate": ${AUDIO_SAMPLERATE},
   "channels": ${AUDIO_CHANNELS},
-  "station_name": "${STATION_NAME}",
+  "station_name": "${STATION_NAME_RAW}",
   "mount_point": "${MOUNT_POINT}",
   "stream_url": "http://${HA_IP}:8000${MOUNT_POINT}"
 }
 EOF
+}
+
+# Recording functions
+start_recording() {
+    if [ "${RECORDING_ACTIVE}" = "true" ]; then
+        bashio::log.warning "Recording already active"
+        return 1
+    fi
+
+    local timestamp=$(date +%Y%m%d_%H%M%S)
+    local extension="mp3"
+    local codec_args="-acodec libmp3lame -ab ${AUDIO_BITRATE}k"
+
+    if [ "${RECORDING_FORMAT}" = "FLAC" ]; then
+        extension="flac"
+        codec_args="-acodec flac"
+    fi
+
+    RECORDING_FILE="${RECORDING_PATH}/vinyl_${timestamp}.${extension}"
+
+    bashio::log.info "Starting recording: ${RECORDING_FILE}"
+
+    # Start separate FFmpeg for recording
+    ffmpeg -hide_banner -loglevel warning \
+        -f ${INPUT_FORMAT} -i ${INPUT_DEVICE} \
+        ${AUDIO_FILTERS:+-af ${AUDIO_FILTERS}} \
+        ${codec_args} -ac ${AUDIO_CHANNELS} -ar ${AUDIO_SAMPLERATE} \
+        "${RECORDING_FILE}" &
+
+    RECORDING_PID=$!
+    RECORDING_ACTIVE=true
+
+    write_status true
+    if bashio::var.true "${MQTT_ENABLED}"; then
+        mqtt_publish_state true
+    fi
+
+    bashio::log.info "Recording started (PID: ${RECORDING_PID})"
+}
+
+stop_recording() {
+    if [ "${RECORDING_ACTIVE}" != "true" ]; then
+        bashio::log.warning "No recording active"
+        return 1
+    fi
+
+    bashio::log.info "Stopping recording..."
+
+    if [ -n "${RECORDING_PID}" ] && kill -0 ${RECORDING_PID} 2>/dev/null; then
+        kill -SIGINT ${RECORDING_PID} 2>/dev/null || true
+        sleep 2
+        kill -9 ${RECORDING_PID} 2>/dev/null || true
+    fi
+
+    RECORDING_PID=""
+    RECORDING_ACTIVE=false
+
+    write_status true
+    if bashio::var.true "${MQTT_ENABLED}"; then
+        mqtt_publish_state true
+    fi
+
+    bashio::log.info "Recording stopped: ${RECORDING_FILE}"
+    RECORDING_FILE=""
 }
 
 # MQTT functions
@@ -310,17 +398,49 @@ mqtt_publish() {
     mosquitto_pub ${mqtt_args} -t "${topic}" -m "${payload}" 2>/dev/null || true
 }
 
+mqtt_subscribe_commands() {
+    local mqtt_args="-h ${MQTT_HOST} -p ${MQTT_PORT}"
+    if [ -n "${MQTT_USERNAME}" ]; then
+        mqtt_args="${mqtt_args} -u ${MQTT_USERNAME}"
+    fi
+    if [ -n "${MQTT_PASSWORD}" ]; then
+        mqtt_args="${mqtt_args} -P ${MQTT_PASSWORD}"
+    fi
+
+    bashio::log.info "MQTT: Listening for commands on vinyl_streamer/command"
+
+    mosquitto_sub ${mqtt_args} -t "vinyl_streamer/command" 2>/dev/null | while read -r command; do
+        bashio::log.info "MQTT command received: ${command}"
+        case "${command}" in
+            "start_recording")
+                start_recording
+                ;;
+            "stop_recording")
+                stop_recording
+                ;;
+            *)
+                bashio::log.warning "Unknown MQTT command: ${command}"
+                ;;
+        esac
+    done
+}
+
 mqtt_discovery() {
     local device_id="vinyl_streamer"
     local discovery_prefix="homeassistant"
 
     # Device info (shared by all entities)
-    local device_info='"device":{"identifiers":["vinyl_streamer"],"name":"Vinyl Streamer","manufacturer":"owanvik","model":"HA Add-on","sw_version":"1.8.13"}'
+    local device_info='"device":{"identifiers":["vinyl_streamer"],"name":"Vinyl Streamer","manufacturer":"owanvik","model":"HA Add-on","sw_version":"1.8.15"}'
 
     # Binary sensor: Streaming status
     local config_topic="${discovery_prefix}/binary_sensor/${device_id}/streaming/config"
     local state_topic="vinyl_streamer/state"
     local config_payload="{\"name\":\"Streaming\",\"unique_id\":\"vinyl_streamer_streaming\",\"state_topic\":\"${state_topic}\",\"value_template\":\"{{ value_json.streaming }}\",\"payload_on\":\"true\",\"payload_off\":\"false\",\"device_class\":\"running\",${device_info}}"
+    mqtt_publish "${config_topic}" "${config_payload}" true
+
+    # Binary sensor: Recording status
+    config_topic="${discovery_prefix}/binary_sensor/${device_id}/recording/config"
+    config_payload="{\"name\":\"Recording\",\"unique_id\":\"vinyl_streamer_recording\",\"state_topic\":\"${state_topic}\",\"value_template\":\"{{ value_json.recording }}\",\"payload_on\":\"true\",\"payload_off\":\"false\",\"icon\":\"mdi:record-circle\",${device_info}}"
     mqtt_publish "${config_topic}" "${config_payload}" true
 
     # Sensor: Format
@@ -343,6 +463,16 @@ mqtt_discovery() {
     config_payload="{\"name\":\"Stream URL\",\"unique_id\":\"vinyl_streamer_url\",\"state_topic\":\"${state_topic}\",\"value_template\":\"{{ value_json.stream_url }}\",\"icon\":\"mdi:link\",${device_info}}"
     mqtt_publish "${config_topic}" "${config_payload}" true
 
+    # Button: Start Recording
+    config_topic="${discovery_prefix}/button/${device_id}/start_recording/config"
+    config_payload="{\"name\":\"Start Recording\",\"unique_id\":\"vinyl_streamer_start_rec\",\"command_topic\":\"vinyl_streamer/command\",\"payload_press\":\"start_recording\",\"icon\":\"mdi:record\",${device_info}}"
+    mqtt_publish "${config_topic}" "${config_payload}" true
+
+    # Button: Stop Recording
+    config_topic="${discovery_prefix}/button/${device_id}/stop_recording/config"
+    config_payload="{\"name\":\"Stop Recording\",\"unique_id\":\"vinyl_streamer_stop_rec\",\"command_topic\":\"vinyl_streamer/command\",\"payload_press\":\"stop_recording\",\"icon\":\"mdi:stop\",${device_info}}"
+    mqtt_publish "${config_topic}" "${config_payload}" true
+
     bashio::log.info "MQTT: Discovery messages published"
 }
 
@@ -351,7 +481,7 @@ mqtt_publish_state() {
     local current_time=$(date +%s)
     local uptime=$((current_time - START_TIME))
 
-    local state_payload="{\"streaming\":${streaming},\"uptime_seconds\":${uptime},\"format\":\"${AUDIO_FORMAT}\",\"bitrate\":${AUDIO_BITRATE},\"samplerate\":${AUDIO_SAMPLERATE},\"channels\":${AUDIO_CHANNELS},\"station_name\":\"${STATION_NAME}\",\"stream_url\":\"http://${HA_IP}:8000${MOUNT_POINT}\"}"
+    local state_payload="{\"streaming\":${streaming},\"recording\":${RECORDING_ACTIVE},\"recording_file\":\"${RECORDING_FILE}\",\"uptime_seconds\":${uptime},\"format\":\"${AUDIO_FORMAT}\",\"bitrate\":${AUDIO_BITRATE},\"samplerate\":${AUDIO_SAMPLERATE},\"channels\":${AUDIO_CHANNELS},\"station_name\":\"${STATION_NAME_RAW}\",\"stream_url\":\"http://${HA_IP}:8000${MOUNT_POINT}\"}"
 
     mqtt_publish "vinyl_streamer/state" "${state_payload}" true
 }
@@ -359,20 +489,27 @@ mqtt_publish_state() {
 # Cleanup on exit
 cleanup() {
     bashio::log.info "Shutting down..."
+
+    # Stop recording if active
+    if [ "${RECORDING_ACTIVE}" = "true" ]; then
+        stop_recording
+    fi
+
     write_status false
     if bashio::var.true "${MQTT_ENABLED}"; then
         mqtt_publish_state false
     fi
+
     kill $FFMPEG_PID 2>/dev/null || true
     kill $ICECAST_PID 2>/dev/null || true
     exit 0
 }
 trap cleanup SIGTERM SIGINT
 
-# Start FFmpeg with auto-restart
+# Start FFmpeg with auto-restart and exponential backoff
 while true; do
     bashio::log.info "Starting FFmpeg encoder..."
-    
+
     # Build FFmpeg command
     FFMPEG_CMD="ffmpeg -hide_banner -loglevel warning"
 
@@ -409,18 +546,39 @@ while true; do
     fi
 
     ${FFMPEG_CMD} "icecast://source:${ICECAST_PASSWORD}@localhost:8000${MOUNT_POINT}" &
-    
+
     FFMPEG_PID=$!
-    
+    FFMPEG_START_TIME=$(date +%s)
+
     # Wait for FFmpeg to exit
     wait $FFMPEG_PID || true
-    
+
     # Check if we should restart
     if ! kill -0 $ICECAST_PID 2>/dev/null; then
         bashio::log.error "Icecast died, exiting"
         exit 1
     fi
-    
-    bashio::log.warning "FFmpeg exited, restarting in 5 seconds..."
-    sleep 5
+
+    # Calculate backoff
+    CURRENT_TIME=$(date +%s)
+    RUNTIME=$((CURRENT_TIME - FFMPEG_START_TIME))
+
+    # Reset counter if FFmpeg ran for more than 5 minutes
+    if [ ${RUNTIME} -gt 300 ]; then
+        RESTART_COUNT=0
+    else
+        RESTART_COUNT=$((RESTART_COUNT + 1))
+    fi
+
+    # Exponential backoff: 5, 10, 20, 40, 60 (max)
+    BACKOFF=$((5 * (2 ** (RESTART_COUNT - 1))))
+    if [ ${BACKOFF} -gt 60 ]; then
+        BACKOFF=60
+    fi
+    if [ ${BACKOFF} -lt 5 ]; then
+        BACKOFF=5
+    fi
+
+    bashio::log.warning "FFmpeg exited after ${RUNTIME}s, restarting in ${BACKOFF} seconds... (restart #${RESTART_COUNT})"
+    sleep ${BACKOFF}
 done

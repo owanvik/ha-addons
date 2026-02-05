@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.8.15] - 2026-02-04
+
+### Added
+- **Recording feature**: Save audio to MP3 or FLAC files
+  - Start/stop recording via MQTT commands or HA buttons
+  - Files saved to configurable path (default: /share/vinyl-recordings)
+  - MQTT buttons auto-created in HA for easy control
+- **Recording status sensor**: Shows when recording is active
+
+### Changed
+- FFmpeg restart now uses exponential backoff (5s, 10s, 20s, 40s, max 60s)
+- Icecast startup now waits for port 8000 to be ready (more reliable)
+
+### Security
+- XML escape for station name, description, and genre (prevents config injection)
+- Icecast config file permissions restricted (chmod 600)
+
 ## [1.8.14] - 2026-02-04
 
 ### Added

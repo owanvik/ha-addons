@@ -1,6 +1,6 @@
 name: "Vinyl Streamer"
 description: "Stream audio from USB input to Icecast (FFmpeg + Icecast)"
-version: "1.8.14"
+version: "1.8.15"
 slug: "vinyl-streamer"
 init: false
 arch:
@@ -51,6 +51,9 @@ options:
     host: ""
     username: ""
     password: ""
+  recording:
+    format: "MP3 (Default)"
+    path: "/share/vinyl-recordings"
 schema:
   station_name: str
   station_description: str
@@ -82,3 +85,6 @@ schema:
     host: str?
     username: str?
     password: str?
+  recording:
+    format: "list(MP3 (Default)|FLAC)"
+    path: str
