@@ -2,7 +2,7 @@
 # ==============================================================================
 # Vinyl Streamer - Run Script
 # Starts Icecast server and FFmpeg encoder
-# Start/stop streaming by starting/stopping this add-on
+# Start/stop streaming by starting/stopping this app
 # ==============================================================================
 
 set -e
@@ -355,7 +355,7 @@ stop_recording() {
 
 # MQTT functions
 setup_mqtt() {
-    # Try to auto-detect MQTT broker from Mosquitto add-on
+    # Try to auto-detect MQTT broker from Mosquitto app
     if [ -z "${MQTT_HOST}" ] && bashio::services.available "mqtt"; then
         MQTT_HOST=$(bashio::services "mqtt" "host")
         MQTT_PORT=$(bashio::services "mqtt" "port")
@@ -372,7 +372,7 @@ setup_mqtt() {
     fi
 
     if [ -z "${MQTT_HOST}" ]; then
-        bashio::log.warning "MQTT: No broker found. Disable MQTT or install Mosquitto add-on."
+        bashio::log.warning "MQTT: No broker found. Disable MQTT or install Mosquitto app."
         MQTT_ENABLED=false
         return 1
     fi
@@ -430,7 +430,7 @@ mqtt_discovery() {
     local discovery_prefix="homeassistant"
 
     # Device info (shared by all entities)
-    local device_info='"device":{"identifiers":["vinyl_streamer"],"name":"Vinyl Streamer","manufacturer":"owanvik","model":"HA Add-on","sw_version":"2.0.0"}'
+    local device_info='"device":{"identifiers":["vinyl_streamer"],"name":"Vinyl Streamer","manufacturer":"owanvik","model":"HA App","sw_version":"2.0.1"}'
 
     # Binary sensor: Streaming status
     local config_topic="${discovery_prefix}/binary_sensor/${device_id}/streaming/config"

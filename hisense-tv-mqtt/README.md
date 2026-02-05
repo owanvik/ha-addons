@@ -25,7 +25,7 @@ Control your Hisense VIDAA Smart TV from Home Assistant via MQTT.
 1. Click the button above, or add repository: `https://github.com/owanvik/ha-addons`
 2. Install **Hisense TV MQTT Bridge**
 3. Configure TV IP and MQTT credentials
-4. Start the add-on
+4. Start the app
 
 ## Configuration
 
@@ -59,7 +59,7 @@ After starting, these entities appear automatically via MQTT Discovery:
 
 ### Entities not appearing
 - Verify MQTT broker is running
-- Check add-on logs for errors
+- Check app logs for errors
 - Ensure MQTT Discovery is enabled in HA
 
 ## License

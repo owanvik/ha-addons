@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.1] - 2026-02-05
+
+### Changed
+- Updated terminology for Home Assistant 2026.2 ("add-on" → "app")
+- Updated service names: `hassio.addon_*` → `hassio.app_*`
+- Automation examples now in collapsible section
+
+---
+
 ## [2.0.0] - 2026-02-05
 
 ### Major Release 🎉
@@ -63,7 +72,7 @@ Full Home Assistant integration with MQTT Discovery, recording controls, and imp
 - MQTT Discovery: Auto-creates sensors in Home Assistant when enabled
   - Binary sensor for streaming status
   - Sensors for format, bitrate, uptime, and stream URL
-- Auto-detects Mosquitto add-on (no manual configuration needed)
+- Auto-detects Mosquitto app (no manual configuration needed)
 - Optional manual MQTT host/username/password for external brokers
 
 ## [1.8.12] - 2026-02-04
@@ -124,7 +133,7 @@ Full Home Assistant integration with MQTT Discovery, recording controls, and imp
 ## [1.8.1] - 2026-02-04
 
 ### Fixed
-- Added missing audio_processing translations (may fix add-on visibility)
+- Added missing audio_processing translations (may fix app visibility)
 
 ## [1.8.0] - 2026-02-04
 
@@ -134,23 +143,23 @@ Full Home Assistant integration with MQTT Discovery, recording controls, and imp
 ## [1.7.8] - 2026-02-04
 
 ### Fixed
-- Reverted to 1.7.7 config to restore add-on visibility (debugging 1.9.x issues)
+- Reverted to 1.7.7 config to restore app visibility (debugging 1.9.x issues)
 
 ## [1.9.3] - 2026-02-04
 
 ### Fixed
-- Removed stereo_width option temporarily to fix add-on visibility
+- Removed stereo_width option temporarily to fix app visibility
 - Reverted to str type for password and float for denoise_strength (same as working 1.7.7)
 
 ## [1.9.2] - 2026-02-04
 
 ### Fixed
-- Changed numeric list values to text labels (stereo_width, denoise_strength) to fix add-on visibility
+- Changed numeric list values to text labels (stereo_width, denoise_strength) to fix app visibility
 
 ## [1.9.1] - 2026-02-04
 
 ### Fixed
-- Changed float schema types to list to fix add-on visibility (stereo_width, denoise_strength)
+- Changed float schema types to list to fix app visibility (stereo_width, denoise_strength)
 
 ## [1.9.0] - 2026-02-04
 

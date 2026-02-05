@@ -87,13 +87,13 @@ configuration:
         description: Enable MQTT auto-discovery. Creates sensors automatically in Home Assistant. Requires MQTT broker (Mosquitto).
       host:
         name: MQTT Host
-        description: Leave empty to auto-detect Mosquitto add-on. Only set if using external MQTT broker.
+        description: Leave empty to auto-detect Mosquitto app. Only set if using external MQTT broker.
       username:
         name: MQTT Username
-        description: Leave empty to use Mosquitto add-on credentials automatically.
+        description: Leave empty to use Mosquitto app credentials automatically.
       password:
         name: MQTT Password
-        description: Leave empty to use Mosquitto add-on credentials automatically.
+        description: Leave empty to use Mosquitto app credentials automatically.
   recording:
     name: Recording
     description: Save audio to files. Start/stop recording via MQTT or Home Assistant.

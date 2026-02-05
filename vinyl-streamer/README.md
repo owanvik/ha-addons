@@ -32,7 +32,7 @@ Stream audio from USB input (vinyl player, turntable, cassette deck) to your net
 1. Click the button above, or add repository: `https://github.com/owanvik/ha-addons`
 2. Install **Vinyl Streamer**
 3. Select your audio input in the "Audio" section
-4. Start the add-on
+4. Start the app
 5. Copy the stream URL from the log
 
 ## Configuration
@@ -50,7 +50,7 @@ Stream audio from USB input (vinyl player, turntable, cassette deck) to your net
 ## Usage
 
 1. Connect your turntable/audio source to USB audio interface
-2. Start the add-on
+2. Start the app
 3. Find the stream URL in the log (e.g., `http://192.168.1.50:8000/vinyl`)
 4. Add to Music Assistant, VLC, or any media player
 
@@ -66,7 +66,7 @@ Now you can play vinyl on any speaker via Music Assistant!
 
 ## On-Demand Streaming
 
-Save resources by starting/stopping the add-on on demand. See [DOCS.md](DOCS.md) for automation examples.
+Save resources by starting/stopping the app on demand. See [DOCS.md](DOCS.md) for automation examples.
 
 ## Support
 

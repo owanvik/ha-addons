@@ -1,4 +1,4 @@
-# Vinyl Streamer Add-on
+# Vinyl Streamer App
 
 Stream audio from USB input (vinyl player, turntable, cassette deck, etc.) to your network via Icecast. Perfect for whole-home vinyl listening with Music Assistant!
 
@@ -32,9 +32,9 @@ Most USB audio devices with standard UAC (USB Audio Class) drivers work. Avoid d
 
 ## Quick Start
 
-1. **Install** the add-on
+1. **Install** the app
 2. **Select audio input** in the "Audio" section at the bottom
-3. **Start** the add-on
+3. **Start** the app
 4. **Copy stream URL** from the log (e.g., `http://192.168.1.50:8000/vinyl`)
 5. **Play** in Music Assistant, VLC, or any media player!
 
@@ -122,7 +122,7 @@ Most USB audio devices with standard UAC (USB Audio Class) drivers work. Avoid d
 - Files are named `vinyl_YYYYMMDD_HHMMSS.mp3` (or .flac)
 - FLAC is lossless - larger files but perfect for archiving
 - Recordings saved to `/share/` accessible from HA file browser
-- Recording continues until stopped or add-on restarts
+- Recording continues until stopped or app restarts
 
 ### Low Latency Mode
 
@@ -141,7 +141,7 @@ If you experience audio dropouts, disable this option.
 
 The easiest way to integrate with Home Assistant. Enable MQTT in settings and sensors/controls are created automatically.
 
-**Requirements:** Mosquitto broker add-on (or external MQTT broker)
+**Requirements:** Mosquitto broker app (or external MQTT broker)
 
 **Auto-created entities:**
 - `binary_sensor.vinyl_streamer_streaming` - Stream status
@@ -154,9 +154,9 @@ The easiest way to integrate with Home Assistant. Enable MQTT in settings and se
 - `button.vinyl_streamer_stop_recording` - Stop recording
 
 **Setup:**
-1. Install Mosquitto broker add-on (if not already installed)
+1. Install Mosquitto broker app (if not already installed)
 2. Enable "MQTT Discovery" in Vinyl Streamer settings
-3. Restart the add-on
+3. Restart the app
 4. Entities appear automatically under "Vinyl Streamer" device
 
 **Manual MQTT broker:** If using an external broker, fill in host/username/password. Leave empty to auto-detect Mosquitto.
@@ -217,12 +217,12 @@ sensor:
 
 ## Audio Input Selection
 
-Use the **"Audio"** section at the bottom of the add-on page:
+Use the **"Audio"** section at the bottom of the app page:
 
 1. Click the **Input** dropdown
 2. Select your USB audio device (e.g., "USB Audio CODEC Analog Stereo")
 3. Click **Save**
-4. Restart the add-on
+4. Restart the app
 
 ## Adding to Music Assistant
 
@@ -231,7 +231,7 @@ This is the recommended way to stream vinyl throughout your home:
 1. Open **Music Assistant**
 2. Go to **Media → Radio**
 3. Click the **+** button (Add Radio Station)
-4. Enter the stream URL from the add-on log (e.g., `http://192.168.1.50:8000/vinyl`)
+4. Enter the stream URL from the app log (e.g., `http://192.168.1.50:8000/vinyl`)
 5. Name it "Vinyl" or "Platespiller"
 6. Click **Save**
 
@@ -239,11 +239,12 @@ Now you can play vinyl on any room/speaker via Music Assistant!
 
 ## On-Demand Streaming (Save Resources)
 
-To save resources, you can start/stop the add-on on demand instead of running it constantly.
+To save resources, you can start/stop the app on demand instead of running it constantly.
 
-### Automation Examples
+<details>
+<summary><strong>Automation Examples</strong> (click to expand)</summary>
 
-#### Start streaming when turntable powers on
+### Start streaming when turntable powers on
 
 If you have a smart plug monitoring your turntable:
 
@@ -255,9 +256,9 @@ automation:
         entity_id: switch.turntable_plug
         to: "on"
     action:
-      - service: hassio.addon_start
+      - service: hassio.app_start
         data:
-          addon: local_vinyl-streamer
+          app: local_vinyl-streamer
 
   - alias: "Stop vinyl stream when turntable off"
     trigger:
@@ -267,12 +268,12 @@ automation:
         for:
           minutes: 5
     action:
-      - service: hassio.addon_stop
+      - service: hassio.app_stop
         data:
-          addon: local_vinyl-streamer
+          app: local_vinyl-streamer
 ```
 
-#### Start/stop recording with a button
+### Start/stop recording with a button
 
 ```yaml
 automation:
@@ -297,7 +298,7 @@ automation:
               entity_id: button.vinyl_streamer_start_recording
 ```
 
-#### Start/stop streaming with a physical button
+### Start/stop streaming with a physical button
 
 Using a Zigbee/Z-Wave button:
 
@@ -315,16 +316,16 @@ automation:
                 entity_id: switch.vinyl_streamer
                 state: "on"
             sequence:
-              - service: hassio.addon_stop
+              - service: hassio.app_stop
                 data:
-                  addon: local_vinyl-streamer
+                  app: local_vinyl-streamer
         default:
-          - service: hassio.addon_start
+          - service: hassio.app_start
             data:
-              addon: local_vinyl-streamer
+              app: local_vinyl-streamer
 ```
 
-### Option 1: Template Switch
+### Template Switch
 
 Add this to your `configuration.yaml`:
 
@@ -338,13 +339,13 @@ switch:
         value_template: >
           {{ is_state('binary_sensor.vinyl_streamer_running', 'on') }}
         turn_on:
-          service: hassio.addon_start
+          service: hassio.app_start
           data:
-            addon: local_vinyl-streamer
+            app: local_vinyl-streamer
         turn_off:
-          service: hassio.addon_stop
+          service: hassio.app_stop
           data:
-            addon: local_vinyl-streamer
+            app: local_vinyl-streamer
 
 binary_sensor:
   - platform: template
@@ -355,11 +356,11 @@ binary_sensor:
           {{ is_state_attr('update.vinyl_streamer_update', 'installed_version', state_attr('update.vinyl_streamer_update', 'installed_version')) }}
 ```
 
-**Note:** Replace `local_vinyl-streamer` with your add-on's slug. Find it in the add-on URL or run `ha addons` in SSH.
+**Note:** Replace `local_vinyl-streamer` with your app's slug. Find it in the app URL or run `ha apps` in SSH.
 
-### Option 2: Automation Button
+### Toggle Script
 
-Create a button that toggles the add-on:
+Create a script that toggles the app:
 
 ```yaml
 script:
@@ -371,16 +372,16 @@ script:
                 entity_id: binary_sensor.vinyl_streamer_running
                 state: 'on'
             sequence:
-              - service: hassio.addon_stop
+              - service: hassio.app_stop
                 data:
-                  addon: local_vinyl-streamer
+                  app: local_vinyl-streamer
         default:
-          - service: hassio.addon_start
+          - service: hassio.app_start
             data:
-              addon: local_vinyl-streamer
+              app: local_vinyl-streamer
 ```
 
-### Option 3: Dashboard Button
+### Dashboard Button
 
 Add a simple start/stop button to your dashboard:
 
@@ -390,15 +391,17 @@ name: Start Vinyl
 icon: mdi:record-player
 tap_action:
   action: call-service
-  service: hassio.addon_start
+  service: hassio.app_start
   data:
-    addon: local_vinyl-streamer
+    app: local_vinyl-streamer
 hold_action:
   action: call-service
-  service: hassio.addon_stop
+  service: hassio.app_stop
   data:
-    addon: local_vinyl-streamer
+    app: local_vinyl-streamer
 ```
+
+</details>
 
 ## Testing the Stream
 
@@ -425,7 +428,7 @@ You can test the stream in any of these ways:
 ### FFmpeg keeps restarting
 
 - Audio device may have disconnected
-- Check add-on logs for specific error
+- Check app logs for specific error
 - Try lowering bitrate to 256 or 192
 
 ### Stream stutters or lags
@@ -439,4 +442,4 @@ You can test the stream in any of these ways:
 
 - Check that the recording path exists and is writable
 - Ensure there's enough disk space in /share
-- Check add-on logs for errors
+- Check app logs for errors

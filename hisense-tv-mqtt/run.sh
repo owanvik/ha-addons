@@ -3,7 +3,7 @@ set -e
 
 CONFIG_PATH=/data/options.json
 
-# Read config from HA Add-on options using jq
+# Read config from HA App options using jq
 TV_IP=$(jq -r '.tv_ip' $CONFIG_PATH)
 TV_PORT=$(jq -r '.tv_port' $CONFIG_PATH)
 TV_CLIENT_ID=$(jq -r '.tv_client_id' $CONFIG_PATH)
