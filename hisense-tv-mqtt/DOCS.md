@@ -47,6 +47,8 @@ Control your Hisense Smart TV from Home Assistant via MQTT.
 | `device_id` | Unique device identifier | `hisense_tv` |
 | `device_name` | Friendly name in HA | `Hisense TV` |
 | `volume_max` | Maximum volume level | `30` |
+| `volume_step` | Volume step size | `1` |
+| `mqtt_timeout` | MQTT connection timeout (seconds) | `30` |
 
 ## Example Configuration
 
@@ -61,6 +63,8 @@ mqtt_password: ""
 device_id: "hisense_living_room"
 device_name: "Hisense Living Room"
 volume_max: 30
+volume_step: 1
+mqtt_timeout: 30
 ```
 
 ## Support

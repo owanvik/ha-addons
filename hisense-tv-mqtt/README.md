@@ -30,15 +30,19 @@ Control your Hisense VIDAA Smart TV from Home Assistant via MQTT.
 
 ## Configuration
 
-| Option | Description |
-|--------|-------------|
-| `tv_ip` | Your TV's IP address |
-| `tv_mac` | TV MAC address (for Wake-on-LAN) |
-| `mqtt_host` | MQTT broker address (e.g., `core-mosquitto`) |
-| `mqtt_port` | MQTT port (default: 1883) |
-| `mqtt_username` | MQTT username |
-| `mqtt_password` | MQTT password |
-| `device_name` | Name shown in Home Assistant |
+| Option | Description | Default |
+|--------|-------------|---------|
+| `tv_ip` | Your TV's IP address | *Required* |
+| `tv_port` | MQTT port on TV | `36669` |
+| `mqtt_host` | MQTT broker address | `core-mosquitto` |
+| `mqtt_port` | MQTT broker port | `1883` |
+| `mqtt_username` | MQTT username | *Optional* |
+| `mqtt_password` | MQTT password | *Optional* |
+| `mqtt_timeout` | Connection timeout (seconds) | `30` |
+| `device_id` | Unique device identifier | `hisense_tv` |
+| `device_name` | Name shown in Home Assistant | `Hisense TV` |
+| `volume_max` | Maximum volume level | `30` |
+| `volume_step` | Volume step size | `1` |
 
 ## Home Assistant Entities
 
@@ -46,10 +50,12 @@ After starting, these entities appear automatically via MQTT Discovery:
 
 | Entity | Type | Description |
 |--------|------|-------------|
-| `media_player.hisense_tv` | Media Player | Main TV control |
 | `select.hisense_tv_source` | Select | Input source |
 | `number.hisense_tv_volume` | Number | Volume slider |
-| `button.hisense_tv_*` | Buttons | Navigation and media |
+| `button.hisense_tv_power` | Button | Power on/off |
+| `button.hisense_tv_mute` | Button | Toggle mute |
+| `button.hisense_tv_volume_up/down` | Button | Volume up/down |
+| `button.hisense_tv_*` | Buttons | Navigation and media controls |
 
 ## Troubleshooting
 

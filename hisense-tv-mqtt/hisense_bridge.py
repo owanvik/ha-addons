@@ -253,6 +253,7 @@ class HisenseBridge:
         self.ha_port = config["mqtt"].get("port", 1883)
         self.ha_user = config["mqtt"].get("username", "")
         self.ha_pass = config["mqtt"].get("password", "")
+        self.ha_mqtt_timeout = config["mqtt"].get("timeout", 30)
         
         self.device_id = config["device"].get("id", "hisense_tv")
         self.device_name = config["device"].get("name", "Hisense TV")
@@ -414,7 +415,7 @@ class HisenseBridge:
             "name": "Volume", "unique_id": f"{self.device_id}_volume",
             "command_topic": f"{self.topic_prefix}/volume/set",
             "state_topic": f"{self.topic_prefix}/volume",
-            "min": 0, "max": self.volume_max, "step": 1, "icon": "mdi:volume-high",
+            "min": 0, "max": self.volume_max, "step": self.volume_step, "icon": "mdi:volume-high",
             "availability_topic": f"{self.topic_prefix}/available", "device": device
         }), retain=True)
         
@@ -475,11 +476,15 @@ class HisenseBridge:
         
         time.sleep(2)
         
-        logger.info(f"🔄 Connecting to MQTT at {self.ha_host}...")
+        logger.info(f"🔄 Connecting to MQTT at {self.ha_host} (timeout: {self.ha_mqtt_timeout}s)...")
         try:
+            old_timeout = socket.getdefaulttimeout()
+            socket.setdefaulttimeout(self.ha_mqtt_timeout)
             self.ha_client.connect(self.ha_host, self.ha_port, 60)
+            socket.setdefaulttimeout(old_timeout)
             self.ha_client.loop_start()
         except Exception as e:
+            socket.setdefaulttimeout(old_timeout)
             logger.error(f"❌ MQTT connection failed: {e}")
             sys.exit(1)
         

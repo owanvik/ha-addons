@@ -14,6 +14,8 @@ MQTT_PASS=$(jq -r '.mqtt_password' $CONFIG_PATH)
 DEVICE_ID=$(jq -r '.device_id' $CONFIG_PATH)
 DEVICE_NAME=$(jq -r '.device_name' $CONFIG_PATH)
 VOLUME_MAX=$(jq -r '.volume_max' $CONFIG_PATH)
+VOLUME_STEP=$(jq -r '.volume_step // 1' $CONFIG_PATH)
+MQTT_TIMEOUT=$(jq -r '.mqtt_timeout // 30' $CONFIG_PATH)
 
 # Create topic_prefix without "hisense_" prefix
 TOPIC_ID=$(echo "$DEVICE_ID" | sed 's/hisense_//')
@@ -29,13 +31,14 @@ mqtt:
   port: ${MQTT_PORT}
   username: "${MQTT_USER}"
   password: "${MQTT_PASS}"
+  timeout: ${MQTT_TIMEOUT}
 device:
   id: "${DEVICE_ID}"
   name: "${DEVICE_NAME}"
   topic_prefix: "hisense/${TOPIC_ID}"
 volume:
   max: ${VOLUME_MAX}
-  step: 1
+  step: ${VOLUME_STEP}
 EOF
 
 echo "Starting Hisense TV MQTT Bridge..."
