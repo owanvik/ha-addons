@@ -207,7 +207,14 @@ else
     INPUT_DEVICE="${AUDIO_DEVICE}"
 fi
 
-bashio::log.info "Using ${INPUT_FORMAT} input: ${INPUT_DEVICE}"
+# Set channel layout based on channel count
+if [ "${AUDIO_CHANNELS}" = "1" ]; then
+    CHANNEL_LAYOUT="mono"
+else
+    CHANNEL_LAYOUT="stereo"
+fi
+
+bashio::log.info "Using ${INPUT_FORMAT} input: ${INPUT_DEVICE} (${CHANNEL_LAYOUT})"
 bashio::log.info "Stream URL: http://${HA_IP}:8000${MOUNT_POINT}"
 
 # Build audio filter chain
@@ -311,7 +318,7 @@ start_recording() {
 
     # Start separate FFmpeg for recording
     ffmpeg -hide_banner -loglevel warning \
-        -f ${INPUT_FORMAT} -channel_layout stereo -i ${INPUT_DEVICE} \
+        -f ${INPUT_FORMAT} -channel_layout ${CHANNEL_LAYOUT} -i ${INPUT_DEVICE} \
         ${AUDIO_FILTERS:+-af ${AUDIO_FILTERS}} \
         ${codec_args} -ac ${AUDIO_CHANNELS} -ar ${AUDIO_SAMPLERATE} \
         "${RECORDING_FILE}" &
@@ -518,7 +525,7 @@ while true; do
         FFMPEG_CMD="${FFMPEG_CMD} -fflags nobuffer -flags low_delay"
     fi
 
-    FFMPEG_CMD="${FFMPEG_CMD} -f ${INPUT_FORMAT} -channel_layout stereo -i ${INPUT_DEVICE}"
+    FFMPEG_CMD="${FFMPEG_CMD} -f ${INPUT_FORMAT} -channel_layout ${CHANNEL_LAYOUT} -i ${INPUT_DEVICE}"
 
     # Add audio filters if any
     if [ -n "${AUDIO_FILTERS}" ]; then

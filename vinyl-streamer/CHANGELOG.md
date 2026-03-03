@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.4] - 2026-03-03
+
+### Fixed
+- Dynamic channel layout: now correctly uses "mono" when channels=1, "stereo" when channels=2
+  (was hardcoded to "stereo" causing FFmpeg warnings and incorrect behavior in mono mode)
+- Applied fix to both streaming and recording FFmpeg commands
+
+### Removed
+- Removed leftover development backup file (run 2.sh)
+
+---
+
 ## [2.0.3] - 2026-02-05
 
 ### Fixed
