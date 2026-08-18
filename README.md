@@ -62,6 +62,21 @@ Control Hisense VIDAA Smart TVs via MQTT and Home Assistant.
 
 ---
 
+### 🔩 [Component Inventory](component-inventory/)
+
+Electronics product catalog and stock inventory with an Ingress UI and MCP access for Codex, Claude and other coding agents.
+
+**Features:**
+- ERP-style product model (SKU, specs, applications, purchase sources)
+- CSV/JSON import and export
+- Token-protected MCP endpoint on port 8098
+- Optional Home Assistant/Nabu Casa MCP via the companion integration
+- SQLite storage in `/data`, included in backups
+
+**Starts empty:** no sample data — import your real components via CSV/JSON.
+
+---
+
 ## Support
 
 - 🐛 [Report a bug](https://github.com/owanvik/ha-addons/issues)

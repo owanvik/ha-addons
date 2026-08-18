@@ -1,0 +1,9 @@
+configuration:
+  api_token:
+    name: API token
+    description: Bearer token required by MCP clients on port 8098.
+  allow_mcp_writes:
+    name: Allow MCP stock writes
+    description: Allow MCP clients to adjust inventory quantities. Disabled by default.
+network:
+  8098/tcp: MCP endpoint for coding agents

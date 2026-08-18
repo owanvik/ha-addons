@@ -1,0 +1,20 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect Component Inventory",
+        "description": "Connect Home Assistant to the locally running Component Inventory app. Use the local app URL (port 8098) and the token shown under Component Inventory > Settings.",
+        "data": {
+          "addon_url": "Component Inventory local URL",
+          "api_token": "Component Inventory API token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not connect to Component Inventory. Check the URL, token, and that the app is running."
+    },
+    "abort": {
+      "already_configured": "Component Inventory is already configured."
+    }
+  }
+}

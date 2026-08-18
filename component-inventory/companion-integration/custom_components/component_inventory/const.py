@@ -1,0 +1,5 @@
+DOMAIN = "component_inventory"
+CONF_ADDON_URL = "addon_url"
+CONF_API_TOKEN = "api_token"
+DEFAULT_ADDON_URL = "http://homeassistant.local:8098"
+LLM_API_ID = "component_inventory"
