@@ -8,8 +8,8 @@ The app/add-on owns SQLite, the product UI, imports, images, stock and purchase 
 
 ## Install
 
-1. Install/update the `Component Inventory` app to v0.4.1 and start it.
-2. Copy `companion-integration/custom_components/component_inventory` into `/config/custom_components/component_inventory` on Home Assistant.
+1. Install/update the `Component Inventory` app to v0.5.0 or later and start it.
+2. In the app, open **Settings** and press **Install integration**. This copies the files into `/config/custom_components/component_inventory` (the app has read/write access to Home Assistant's config folder for this and writes nothing else). Without the button, copy `companion-integration/custom_components/component_inventory` there yourself, for example over Samba.
 3. Restart Home Assistant.
 4. Go to **Settings > Devices & services > Add integration > Component Inventory**.
 5. Enter a local URL that Home Assistant Core can reach, typically `http://<HOME_ASSISTANT_LAN_IP>:8098`, and paste the token from **Component Inventory > Settings**.

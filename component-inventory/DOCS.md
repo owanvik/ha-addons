@@ -49,6 +49,18 @@ Open **Settings** inside Component Inventory to see the MCP endpoints and bearer
 
 There are two ways to reach the inventory from an MCP client.
 
+### Install the Home Assistant integration
+
+Claude and ChatGPT reach the inventory through a small custom Home Assistant integration (the companion integration). The app can install it for you:
+
+1. In the app, open **Settings** and press **Install integration** under *Step 1*. This copies the integration into `custom_components/component_inventory` in Home Assistant's config folder.
+2. Restart Home Assistant.
+3. Open *Settings > Devices & services > Add integration*, search for **Component Inventory** and add it. Enter the address and token shown in the app (use `http://<HA-IP>:8098` if the suggested address cannot connect).
+
+For this the app has read/write access to Home Assistant's config folder (`homeassistant_config`). The installer only writes inside `custom_components/component_inventory`, refuses to follow symbolic links, and keeps one backup of a replaced copy in `/data/companion_backup`. It never edits `configuration.yaml`, secrets or any other file. If you prefer, copy `companion-integration/custom_components/component_inventory` there yourself (for example over Samba).
+
+After an app update, **Check setup** tells you if the installed integration differs from the bundled one. Press **Update integration** and restart Home Assistant.
+
 ### Remote access through Home Assistant / Nabu Casa (Claude, ChatGPT)
 
 Claude and ChatGPT connect from the cloud and sign in with OAuth. They cannot use port `8098`, and Nabu Casa does not forward it. Instead, install the companion integration (see `companion-integration/COMPANION_INTEGRATION.md`) and use Home Assistant's own MCP endpoint:
@@ -124,7 +136,7 @@ You can also open the MCP address in a normal browser tab. **401 Unauthorized** 
 Common problems:
 
 - **"Couldn't connect" after you log in to Home Assistant:** the **Model Context Protocol Server** integration is usually missing. Add it under *Settings > Devices & services > Add integration*. Do not pick "Model Context Protocol" without "Server", which is the opposite direction.
-- **Connected, but no inventory tools, or an "Unknown LLM API" error:** the Component Inventory integration is not set up. Copy it to `/config/custom_components/component_inventory`, restart Home Assistant and add it under Devices & services.
+- **Connected, but no inventory tools, or an "Unknown LLM API" error:** the Component Inventory integration is not set up. Press **Install integration** in Settings, restart Home Assistant and add it under Devices & services.
 - **Component Inventory shows "Retrying setup":** the app address or token you entered is wrong, or the app is not running. Home Assistant retries by itself once the app answers.
 - **403 or "forbidden":** sign in with a Home Assistant administrator account. Custom LLM APIs are admin-only.
 - **Home Assistant asks you to give `https://chatgpt.com/oauth/.../client.json` access:** this is expected. ChatGPT identifies itself with that address, and Claude shows a similar one.

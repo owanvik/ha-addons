@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+- **Install integration** button in Settings copies the Home Assistant companion integration into `custom_components/component_inventory`. After a restart of Home Assistant it can be added under Devices & services. The integration is bundled in the app image.
+- **New permission:** the app now has read/write access to Home Assistant's config folder (`homeassistant_config`). The installer writes only inside `custom_components/component_inventory`, refuses symbolic links, requires a folder that looks like Home Assistant's config, and keeps one backup of a replaced copy in `/data/companion_backup`. It never edits `configuration.yaml` or any other file.
+- Because of the new permission, `0.5.0` is listed as a breaking version: automatic updates never install it, you update manually.
+- **Check setup** gets a row for the installed integration files (installed, up to date, outdated or missing).
+- No changes to the database or `settings.json`: existing inventory, stock movements and the API token are kept when updating.
+
 ## 0.4.3
 - **Check setup** now shows whether the Home Assistant companion integration has contacted the app, how long ago, and whether it was rejected for a wrong token. The app records this in a new small file, `/data/companion.json`.
 - The record starts empty after updating. Reload the integration in Home Assistant to record a first contact.

@@ -2,6 +2,7 @@ import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 import companion
+import companion_install
 import connect
 import db
 import settings
@@ -26,7 +27,9 @@ a.btn:not([href]){opacity:.45;cursor:not-allowed}
 .chk{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
 .chk-s{flex:0 0 22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-weight:700;font-size:.85rem;background:var(--card2)}
 .chk-ok{color:var(--ok)}.chk-bad{color:#f87171}.chk-warn{color:var(--warn)}.chk-unk{color:var(--muted)}
-.guide ul{margin:4px 0 8px 20px;padding:0;line-height:1.55}
+.guide ul,.guide-steps{margin:4px 0 8px 20px;padding:0;line-height:1.55}
+.guide-steps li{margin-bottom:6px}
+.guide-steps code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#0b1220;padding:1px 5px;border-radius:5px}
 @media(max-width:850px){.bar,.stats,.product-grid,.detail-cols,.grid2,.grid3,.import-layout{grid-template-columns:1fr}.stock-row{grid-template-columns:1fr}.stock-actions{justify-content:flex-start}.source{grid-template-columns:1fr}.preview-row{grid-template-columns:80px 1fr 65px}.preview-row span:last-child{display:none}}
 </style></head>
 <body><div class="wrap">
@@ -47,7 +50,18 @@ a.btn:not([href]){opacity:.45;cursor:not-allowed}
 <div id="previewCard" class="card hidden"><div class="top"><div><h3 style="margin:0">Import preview</h3><div class="muted" id="previewSummary"></div></div></div><div id="previewRows" class="preview"></div></div>
 </section>
 
-<section id="settings-panel" class="hidden"><div class="settings-grid"><div class="card"><h3>Connect Claude, ChatGPT and other clients</h3>
+<section id="settings-panel" class="hidden"><div class="settings-grid"><div class="card"><h3>Step 1: Install the Home Assistant integration</h3>
+<p class="help">Claude and ChatGPT reach the inventory through a small Home Assistant integration. This app can copy it into Home Assistant's config folder for you, into <code>custom_components/component_inventory</code> only. Nothing else in that folder is touched. If the integration is replaced, the old copy is kept under <code>/data/companion_backup</code>.</p>
+<div id="instStatus" class="help"></div>
+<div class="actions" style="margin:10px 0"><button class="btn primary" id="instBtn" onclick="installIntegration()" disabled>Install integration</button></div>
+<div id="instNext" class="hidden"><div class="section-title">Next steps</div><ol class="guide-steps">
+<li><b>Restart Home Assistant</b> (Settings &gt; System, power button, Restart Home Assistant). Home Assistant only finds new integrations at startup.</li>
+<li>Open <b>Settings &gt; Devices &amp; services &gt; Add integration</b>, search for <b>Component Inventory</b> and add it.</li>
+<li>Enter the address and the token below. If the address cannot connect, use <code>http://&lt;HA-IP&gt;:8098</code> with the IP address of Home Assistant.
+<div class="field" style="margin-top:8px"><label>Address</label><div class="actions"><input id="instUrl" style="flex:1" oninput="this.dataset.edited='1'"><button class="btn" onclick="copyValue('instUrl')">Copy</button></div></div>
+<div class="actions"><button class="btn" onclick="copyValue('token')">Copy token</button></div></li>
+<li>Then run <b>Check setup</b> in the next card.</li></ol></div></div>
+<div class="card"><h3>Step 2: Connect Claude, ChatGPT and other clients</h3>
 <p class="help">Claude and ChatGPT connect from the cloud, so they need your public Home Assistant address (Nabu Casa), not a LAN address. This address is served by Home Assistant itself and needs no router port forwarding. It requires the companion Component Inventory integration and Home Assistant's Model Context Protocol Server integration, and you sign in with a Home Assistant administrator account.</p>
 <div class="field"><label>MCP address (Home Assistant / Nabu Casa)</label><div class="actions"><input id="haMcpEndpoint" style="flex:1" oninput="onEndpointEdit(this)"><button class="btn" onclick="copyValue('haMcpEndpoint')">Copy</button></div></div>
 <div id="urlWarn" class="warn hidden"></div>
@@ -82,7 +96,7 @@ a.btn:not([href]){opacity:.45;cursor:not-allowed}
 <details class="guide"><summary>Troubleshooting</summary><ul>
 <li><b>"Couldn't connect" after you log in to Home Assistant:</b> run <b>Check setup</b>. The usual cause is that the <b>Model Context Protocol Server</b> integration is not added (Settings &gt; Devices &amp; services &gt; Add integration). Do not pick "Model Context Protocol" without "Server".</li>
 <li><b>Quick test:</b> open the MCP address in a normal browser tab. <b>401 Unauthorized</b> is good: the address exists and wants a login. <b>404</b> means the MCP Server integration is missing.</li>
-<li><b>Connected, but no inventory tools or an "Unknown LLM API" error:</b> the Component Inventory integration is not set up. Copy it to <code>/config/custom_components/component_inventory</code>, restart Home Assistant, and add it under Devices &amp; services.</li>
+<li><b>Connected, but no inventory tools or an "Unknown LLM API" error:</b> the Component Inventory integration is not set up. Press <b>Install integration</b> at the top of this page, restart Home Assistant, and add it under Devices &amp; services.</li>
 <li><b>Component Inventory shows "Retrying setup":</b> the app address or token you entered is wrong, or the app is not running. Home Assistant retries by itself once the app answers.</li>
 <li><b>403 or "forbidden":</b> sign in with a Home Assistant administrator account. Custom LLM APIs are admin-only.</li>
 <li><b>Home Assistant asks you to give <code>https://chatgpt.com/oauth/.../client.json</code> access:</b> that is expected. ChatGPT identifies itself with that address. Claude shows a similar address.</li>
@@ -131,10 +145,14 @@ function onEndpointEdit(el){el.dataset.edited='1';updateGuide()}
 function publicProblem(url){if(!/^https:\/\/[^\s"'\\]+$/i.test(url))return 'Claude and ChatGPT need a public https address. Use your Nabu Casa address, for example https://YOUR-ID.ui.nabu.casa/api/mcp/component_inventory';if(LOCAL_HOST.test(url))return 'This is a local address. Claude and ChatGPT connect from the cloud, so use your public Nabu Casa address, for example https://YOUR-ID.ui.nabu.casa/api/mcp/component_inventory';return ''}
 function showWarn(id,msg){$(id).textContent=msg;$(id).classList.toggle('hidden',!msg)}
 function updateGuide(){const lan=$('connMode').value==='lan',pub=$('haMcpEndpoint').value.trim(),local=$('endpoint').value.trim(),url=lan?local:pub;$('lanBox').classList.toggle('hidden',!lan);showWarn('urlWarn',publicProblem(pub));const bad=!URL_OK.test(url)?'Enter a full http(s) address first.':url.includes('HOME_ASSISTANT_IP')?'Replace HOME_ASSISTANT_IP with the IP address of Home Assistant.':'';showWarn('cliWarn',bad);const q='?mode='+(lan?'lan':'remote')+'&url='+encodeURIComponent(url);[['ccDownload','claude-code'],['cxDownload','codex']].forEach(([id,client])=>{if(bad)$(id).removeAttribute('href');else $(id).href='api/connect/'+client+q});$('ccCmd').textContent=lan?`claude mcp add --transport http component-inventory ${url} --header "Authorization: Bearer $COMPONENT_INVENTORY_TOKEN"`:`claude mcp add --transport http component-inventory ${url}\nclaude mcp login component-inventory`;$('cxCmd').textContent=lan?`# Append to ~/.codex/config.toml\n[mcp_servers.component_inventory]\nurl = "${url}"\nbearer_token_env_var = "COMPONENT_INVENTORY_TOKEN"`:`codex mcp add component_inventory --url ${url}\ncodex mcp login component_inventory`}
-async function loadSettings(){const s=await api('api/settings');$('token').value=s.api_token;$('writes').checked=!!s.allow_mcp_writes;const ha=$('haMcpEndpoint'),lan=$('endpoint');if(!ha.dataset.edited)ha.value=window.location.origin+'/api/mcp/component_inventory';if(!lan.dataset.edited)lan.value=window.location.protocol==='http:'?'http://'+window.location.hostname+':8098/mcp':'http://HOME_ASSISTANT_IP:8098/mcp';updateGuide()}
+async function loadSettings(){const s=await api('api/settings');$('token').value=s.api_token;$('writes').checked=!!s.allow_mcp_writes;const ha=$('haMcpEndpoint'),lan=$('endpoint');if(!ha.dataset.edited)ha.value=window.location.origin+'/api/mcp/component_inventory';if(!lan.dataset.edited)lan.value=window.location.protocol==='http:'?'http://'+window.location.hostname+':8098/mcp':'http://HOME_ASSISTANT_IP:8098/mcp';updateGuide();loadInstall()}
 async function copyText(t){try{await navigator.clipboard.writeText(t)}catch{const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch{}a.remove();if(!ok){toast('Copy failed, select the text and copy it manually');return}}toast('Copied')}
 function copyEl(id){return copyText($(id).textContent)}
 function copyExport(){return copyText("export COMPONENT_INVENTORY_TOKEN='"+$('token').value+"'")}
+const INST_TEXT={current:'Installed and up to date.',not_installed:'Not installed yet.',outdated:'Installed, but different from the version bundled with this app. Update it to get the latest fixes.',not_mapped:`The app cannot write to Home Assistant's config folder. Update the app to the latest version, which asks for that permission, or copy the integration by hand (see DOCS.md).`,unavailable:'This build of the app does not include the integration files.'};
+function renderInstall(s){$('instStatus').textContent=(INST_TEXT[s.state]||s.state)+(s.installed_version?' Installed version: '+s.installed_version+'.':'')+(s.bundled_version?' Bundled version: '+s.bundled_version+'.':'');const b=$('instBtn');b.textContent=s.state==='outdated'?'Update integration':s.state==='current'?'Reinstall integration':'Install integration';b.disabled=s.state==='unavailable'||s.state==='not_mapped';if(!$('instUrl').dataset.edited)$('instUrl').value=s.suggested_url}
+async function loadInstall(){try{renderInstall(await api('api/companion/install'))}catch{$('instStatus').textContent='Could not read the install status.'}}
+async function installIntegration(){const b=$('instBtn');b.disabled=true;try{renderInstall(await api('api/companion/install',{method:'POST'}));$('instNext').classList.remove('hidden');toast('Integration copied to Home Assistant')}catch(e){alert(e.message);b.disabled=false}}
 function ago(s){if(s<60)return 'moments ago';const m=Math.round(s/60);if(m<60)return m+(m===1?' minute':' minutes')+' ago';const h=Math.round(m/60);if(h<48)return h+(h===1?' hour':' hours')+' ago';return Math.round(h/24)+' days ago'}
 async function httpStatus(path,opts){try{return (await fetch(new URL(path,window.location.origin),{cache:'no-store',...opts})).status}catch{return 0}}
 function checkRow(state,title,detail){const row=document.createElement('div');row.className='chk';const s=document.createElement('span');s.className='chk-s chk-'+state;s.textContent={ok:'✓',bad:'✗',warn:'!',unk:'?'}[state];s.title={ok:'OK',bad:'Problem',warn:'Warning',unk:'Check manually'}[state];const body=document.createElement('div'),b=document.createElement('b'),d=document.createElement('div');b.textContent=title;d.className='help';d.textContent=detail;body.append(b,d);row.append(s,body);return row}
@@ -152,11 +170,18 @@ else rows.push(['bad',oauthTitle,d?'This Home Assistant does not support Client 
 catch{rows.push(['unk',oauthTitle,'Could not read the sign-in details from Home Assistant.'])}
 const pub=publicProblem($('haMcpEndpoint').value.trim());rows.push([pub?'bad':'ok','Public https address',pub||'The address above is https and not a local address.']);
 rows.push(/\.ui\.nabu\.casa$/i.test(window.location.hostname)?['ok','Remote access','You opened this page through Nabu Casa, so remote access works.']:['unk','Remote access','Open this page through your Nabu Casa address to confirm that Remote Control is on (Settings > Home Assistant Cloud).']);
+const instTitle='Integration files in Home Assistant';
+try{const s=await api('api/companion/install');
+if(s.state==='current')rows.push(['ok',instTitle,`Installed in Home Assistant's config folder and up to date. Home Assistant must have been restarted after the install.`]);
+else if(s.state==='outdated')rows.push(['warn',instTitle,'Installed, but different from the version bundled with this app. Use "Update integration" at the top of Settings, then restart Home Assistant.']);
+else if(s.state==='not_installed')rows.push(['bad',instTitle,'Not installed. Use "Install integration" at the top of Settings, restart Home Assistant, then add Component Inventory under Settings > Devices & services.']);
+else rows.push(['unk',instTitle,`The app cannot see Home Assistant's config folder, so it cannot check. Look for /config/custom_components/component_inventory yourself.`])}
+catch{rows.push(['unk',instTitle,'Could not read the install status from the app.'])}
 const compTitle='Component Inventory integration';
 try{const c=await api('api/companion');
 if(c.rejected!==null&&(c.ok===null||c.rejected<c.ok))rows.push(['bad',compTitle,'Something reached the app '+ago(c.rejected)+' with a wrong token. If that was the integration, remove it in Settings > Devices & services and add it again with the current token from "Local app connection" below.']);
 else if(c.ok!==null)rows.push(['ok',compTitle,'The integration last contacted the app '+ago(c.ok)+(c.health!==null?' and last set itself up '+ago(c.health):'')+'.']);
-else rows.push(['warn',compTitle,'The app has not seen the integration yet. If you just updated the app, reload the integration (Settings > Devices & services > Component Inventory > menu > Reload). If it says "Retrying setup", the app address or token is wrong or the app is not reachable from Home Assistant. If it is not listed, install it first (see DOCS.md).'])}
+else rows.push(['warn',compTitle,'The app has not seen the integration yet. If you just updated the app, reload the integration (Settings > Devices & services > Component Inventory > menu > Reload). If it says "Retrying setup", the app address or token is wrong or the app is not reachable from Home Assistant. If it is not listed, install the integration first (top of Settings).'])}
 catch{rows.push(['unk',compTitle,'Could not read the contact record from the app.'])}
 const bad=rows.filter(r=>r[0]==='bad').length,warn=rows.filter(r=>r[0]==='warn').length;
 $('checkSummary').textContent=bad?bad+(bad>1?' problems':' problem')+' found':warn?'No problems, but check the warning':'Nothing wrong found. Items marked ? must be checked by hand.';
@@ -216,6 +241,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._text(200, db.export_csv(), 'text/csv; charset=utf-8', {'Content-Disposition': 'attachment; filename="component_inventory.csv"'})
         if path == 'api/companion':
             return self._json(200, companion.status())
+        if path == 'api/companion/install':
+            return self._json(200, companion_install.status())
         if path.startswith('api/connect/'):
             return self._connect_file(path.removeprefix('api/connect/'), parse_qs(urlparse(self.path).query))
         if path.startswith('api/items/'):
@@ -261,6 +288,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._json(200, {'result': db.import_items(rows, mode), 'rows': len(rows)})
             if path == 'api/settings/rotate-token':
                 return self._json(200, settings.rotate_token())
+            if path == 'api/companion/install':
+                return self._json(200, companion_install.install())
         except Exception as e:
             return self._json(400, {'error': str(e)})
         return self._json(404, {'error': 'Not found'})

@@ -16,6 +16,7 @@ COPY requirements.txt /tmp/requirements.txt
 RUN /opt/venv/bin/pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY app /app
+COPY companion-integration/custom_components/component_inventory /opt/companion/component_inventory
 COPY run.sh /run.sh
 RUN chmod a+x /run.sh
 
