@@ -8,7 +8,7 @@ The app/add-on owns SQLite, the product UI, imports, images, stock and purchase 
 
 ## Install
 
-1. Install/update the `Component Inventory` app to v0.4.0 and start it.
+1. Install/update the `Component Inventory` app to v0.4.1 and start it.
 2. Copy `companion-integration/custom_components/component_inventory` into `/config/custom_components/component_inventory` on Home Assistant.
 3. Restart Home Assistant.
 4. Go to **Settings > Devices & services > Add integration > Component Inventory**.
@@ -23,7 +23,19 @@ Use:
 
 With Nabu Casa this means your normal `https://....ui.nabu.casa` URL. Do **not** append port 8098.
 
-Authentication is handled by Home Assistant. Clients that support OAuth can authenticate against Home Assistant; clients that support bearer tokens can use a Home Assistant long-lived access token. Custom LLM API endpoints require admin authorization.
+Authentication is handled by Home Assistant, which uses OAuth 2.0 with PKCE and Client ID Metadata Documents (not Dynamic Client Registration). Custom LLM API endpoints require an administrator account.
+
+- **Claude:** add a custom connector with the URL, choose **Sign in now**, then **Use Claude's published identity**, and log in to Home Assistant.
+- **ChatGPT:** add a custom MCP server with the URL, set authentication to **OAuth** (client ID `https://chatgpt.com`), and log in to Home Assistant.
+- **Other clients:** clients that can send headers may be able to use a Home Assistant long-lived access token as a bearer token. This is standard Home Assistant API authentication, but it is not covered by Home Assistant's MCP Server documentation, so test it first.
+
+For OAuth, Home Assistant's **External URL** (Settings > System > Network) must match the hostname the client uses, normally the `.ui.nabu.casa` address.
+
+## Compatibility
+
+The integration detects the Home Assistant 2026.9 (Probatio) and 2026.10 (`llm.ToolResult`, tool annotations) changes at runtime, so the same files are meant to work before and after them. The search, get and list tools are declared read-only; the quantity adjustment is declared as a non-destructive write and only works when writes are enabled in the app Settings.
+
+If Home Assistant starts before the app, the integration shows "Retrying setup" and connects once the app is reachable.
 
 ## Local/direct fallback
 

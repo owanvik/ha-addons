@@ -5,6 +5,7 @@ from urllib.parse import parse_qs
 import uvicorn
 from mcp.server import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
+from mcp.types import ToolAnnotations
 
 import db
 import settings
@@ -15,40 +16,44 @@ settings.load_settings()
 
 mcp = MCPServer('Component Inventory')
 
+READ_ONLY = ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=False)
+# Stock changes are logged as movements, so they are not destructive
+WRITE = ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=False)
 
-@mcp.tool()
+
+@mcp.tool(annotations=READ_ONLY)
 def search_inventory(query: str, category: str | None = None, in_stock_only: bool = True, limit: int = 20) -> dict:
     """Search the electronics product catalog by name, SKU, model, purpose, applications, tags or specifications."""
     return {'query': query, 'items': db.search_items(query, category, in_stock_only, limit)}
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 def get_inventory_item(item_id: int) -> dict:
     """Get a product and its stock data by numeric inventory ID."""
     item = db.get_item(item_id)
     return item or {'error': 'Item not found'}
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 def get_inventory_item_by_sku(sku: str) -> dict:
     """Get a product by its stable internal SKU."""
     item = db.get_item_by_sku(sku)
     return item or {'error': 'Item not found'}
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 def list_inventory(category: str | None = None, in_stock_only: bool = True, limit: int = 500) -> dict:
     """List inventory products, optionally filtered by exact category."""
     return {'items': db.list_items(category, in_stock_only, limit)}
 
 
-@mcp.tool()
+@mcp.tool(annotations=READ_ONLY)
 def list_categories() -> dict:
     """List product categories in the inventory."""
     return {'categories': db.categories()}
 
 
-@mcp.tool()
+@mcp.tool(annotations=WRITE)
 def adjust_quantity(item_id: int, delta: int, reason: str = 'MCP') -> dict:
     """Adjust stock quantity. Disabled unless MCP writes are enabled in the app Settings panel."""
     if not settings.load_settings().get('allow_mcp_writes', False):

@@ -1,5 +1,5 @@
 name: "Component Inventory"
-version: "0.4.0"
+version: "0.4.1"
 slug: "component_inventory"
 description: "Electronics product catalog, inventory, import/export and MCP access through Home Assistant or direct LAN"
 url: "https://github.com/owanvik/ha-addons"
@@ -17,5 +17,5 @@ panel_title: Component Inventory
 ports:
   8098/tcp: 8098
 ports_description:
-  8098/tcp: "MCP endpoint for Codex, Claude and other MCP clients"
+  8098/tcp: "Direct LAN MCP endpoint for Claude Code, Codex and other local clients (Claude and ChatGPT use the Home Assistant endpoint instead, see DOCS)"
 backup: hot

@@ -2,27 +2,52 @@ from __future__ import annotations
 
 from typing import Any, override
 
-import voluptuous as vol
+try:
+    import probatio as vol  # Home Assistant 2026.9+ validates schemas with Probatio
+except ImportError:
+    import voluptuous as vol
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import llm
 from homeassistant.util.json import JsonObjectType
 
 from .client import InventoryClient
-from .const import LLM_API_ID
+from .const import DOMAIN, LLM_API_ID
 
 
 class InventoryTool(llm.Tool):
-    def __init__(self, name: str, description: str, parameters: vol.Schema, client: InventoryClient, handler: str) -> None:
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        parameters: vol.Schema,
+        client: InventoryClient,
+        handler: str,
+        *,
+        title: str,
+        read_only: bool,
+    ) -> None:
         self.name = name
+        self.title = title
         self.description = description
         self.parameters = parameters
+        self.integration = DOMAIN
         self.client = client
         self.handler = handler
+        if hasattr(llm, "ToolAnnotations"):  # Home Assistant 2026.10+
+            # The default annotations describe the least safe case (writes, destructive, open world)
+            self.annotations = llm.ToolAnnotations(
+                read_only=read_only, destructive=False, idempotent=read_only, open_world=False
+            )
 
     @override
-    async def async_call(self, hass: HomeAssistant, tool_input: llm.ToolInput, llm_context: llm.LLMContext) -> JsonObjectType:
-        args = tool_input.tool_args
+    async def async_call(self, hass: HomeAssistant, tool_input: llm.ToolInput, llm_context: llm.LLMContext) -> Any:
+        data = await self._call(tool_input.tool_args)
+        if hasattr(llm, "ToolResult"):  # Home Assistant 2026.10+
+            return llm.ToolResult(data=data)
+        return data
+
+    async def _call(self, args: dict[str, Any]) -> JsonObjectType:
         if self.handler == "search":
             return await self.client.search(
                 args["query"], args.get("category"), args.get("in_stock_only", True), args.get("limit", 20)
@@ -59,6 +84,8 @@ class ComponentInventoryAPI(llm.API):
                 }),
                 self.client,
                 "search",
+                title="Search inventory",
+                read_only=True,
             ),
             InventoryTool(
                 "get_inventory_item",
@@ -66,6 +93,8 @@ class ComponentInventoryAPI(llm.API):
                 vol.Schema({vol.Required("item_id"): int}),
                 self.client,
                 "get",
+                title="Get inventory item",
+                read_only=True,
             ),
             InventoryTool(
                 "get_inventory_item_by_sku",
@@ -73,6 +102,8 @@ class ComponentInventoryAPI(llm.API):
                 vol.Schema({vol.Required("sku"): str}),
                 self.client,
                 "sku",
+                title="Get inventory item by SKU",
+                read_only=True,
             ),
             InventoryTool(
                 "list_inventory",
@@ -84,6 +115,8 @@ class ComponentInventoryAPI(llm.API):
                 }),
                 self.client,
                 "list",
+                title="List inventory",
+                read_only=True,
             ),
             InventoryTool(
                 "list_inventory_categories",
@@ -91,6 +124,8 @@ class ComponentInventoryAPI(llm.API):
                 vol.Schema({}),
                 self.client,
                 "categories",
+                title="List inventory categories",
+                read_only=True,
             ),
             InventoryTool(
                 "adjust_inventory_quantity",
@@ -102,6 +137,8 @@ class ComponentInventoryAPI(llm.API):
                 }),
                 self.client,
                 "adjust",
+                title="Adjust inventory quantity",
+                read_only=False,
             ),
         ]
         return llm.APIInstance(
