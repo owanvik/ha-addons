@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.0
+- New MCP tool **`create_inventory_item`** creates a product: name, quantity, category, subcategory, manufacturer, model, unit, location, description, applications, tags, specifications, purchase sources, datasheet and product links, notes and an optional SKU. It returns the created item with its id and SKU. It is available on the direct endpoint and through Home Assistant (after **Update integration** in Settings and a restart of Home Assistant; reconnect the connector in Claude or ChatGPT to see the new tool).
+- It uses the same switch as quantity changes, so it only works when "Allow inventory changes through MCP" is on in Settings (the label now covers both).
+- Input is validated: a name is required, quantity must be a whole number from 0, text fields have length limits, and links must start with http:// or https://. A SKU is generated when none is given and gets a numeric suffix if it already exists.
+- Duplicates are refused with the id of the existing item: same SKU, or same name ignoring case. A category that matches an existing one ignoring case uses the existing spelling.
+- Initial stock is recorded as a stock movement ("Created via MCP: initial stock"), like other quantity changes.
+- New REST endpoint `POST /inventory-api/items` for the integration, behind the same switch.
+- No changes to the database schema or `settings.json`: existing inventory, stock movements and the API token are kept when updating.
+
 ## 0.5.1
 - The Home Assistant integration now ships its own icon and logo in `brand/` (`icon.png`, `icon@2x.png`, `logo.png`, `logo@2x.png`), so it no longer shows a placeholder under Devices & services. Needs Home Assistant 2026.3 or later; older versions keep the placeholder.
 - The images are sized as Home Assistant requires (icon 256 and 512 px square, logo 256 and 512 px high) and compressed to about 370 KB in total.

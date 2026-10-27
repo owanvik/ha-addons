@@ -58,3 +58,6 @@ class InventoryClient:
             f"/inventory-api/items/{item_id}/adjust",
             json={"delta": delta, "reason": reason},
         )
+
+    async def create_item(self, item: dict[str, Any]):
+        return await self._request("POST", "/inventory-api/items", json=item)

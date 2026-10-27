@@ -62,6 +62,8 @@ class InventoryTool(llm.Tool):
             return await self.client.get_by_sku(args["sku"])
         if self.handler == "adjust":
             return await self.client.adjust(args["item_id"], args["delta"], args.get("reason", "Home Assistant MCP"))
+        if self.handler == "create":
+            return await self.client.create_item({k: v for k, v in args.items() if v is not None})
         return {"error": "Unknown tool handler"}
 
 
@@ -138,6 +140,37 @@ class ComponentInventoryAPI(llm.API):
                 self.client,
                 "adjust",
                 title="Adjust inventory quantity",
+                read_only=False,
+            ),
+            InventoryTool(
+                "create_inventory_item",
+                "Create a new product in the electronics inventory. Search first to avoid duplicates, and use an existing category from list_inventory_categories when one fits so the spelling stays consistent. Give specification values as text, for example \"5 V\". Returns the created item with its id and SKU. This only works when inventory changes are enabled in the Component Inventory app.",
+                vol.Schema({
+                    vol.Required("name"): str,
+                    vol.Optional("quantity", default=0): vol.All(int, vol.Range(min=0, max=1000000)),
+                    vol.Optional("category"): str,
+                    vol.Optional("subcategory"): str,
+                    vol.Optional("manufacturer"): str,
+                    vol.Optional("model"): str,
+                    vol.Optional("unit"): str,
+                    vol.Optional("location"): str,
+                    vol.Optional("description"): str,
+                    vol.Optional("applications"): [str],
+                    vol.Optional("tags"): [str],
+                    vol.Optional("specifications"): {str: str},
+                    vol.Optional("purchase_sources"): [{
+                        vol.Optional("vendor"): str,
+                        vol.Optional("url"): str,
+                        vol.Optional("part_number"): str,
+                    }],
+                    vol.Optional("datasheet_url"): str,
+                    vol.Optional("product_url"): str,
+                    vol.Optional("notes"): str,
+                    vol.Optional("sku"): str,
+                }),
+                self.client,
+                "create",
+                title="Create inventory item",
                 read_only=False,
             ),
         ]

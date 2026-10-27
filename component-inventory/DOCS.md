@@ -96,7 +96,7 @@ Settings can also download ready-made config files: `component-inventory.mcp.jso
 
 Sign in with a Home Assistant administrator account. Home Assistant's **External URL** (Settings > System > Network) must be the Nabu Casa address, otherwise OAuth fails.
 
-Tools exposed this way: `search_inventory`, `get_inventory_item`, `get_inventory_item_by_sku`, `list_inventory`, `list_inventory_categories` and `adjust_inventory_quantity` (only when writes are enabled in Settings).
+Tools exposed this way: `search_inventory`, `get_inventory_item`, `get_inventory_item_by_sku`, `list_inventory`, `list_inventory_categories`, `adjust_inventory_quantity` and `create_inventory_item` (the last two only when writes are enabled in Settings).
 
 ### Direct LAN access (Claude Code, Codex, other local clients)
 
@@ -116,6 +116,7 @@ Available tools:
 - `list_inventory`
 - `list_categories`
 - `adjust_quantity` (only when enabled in Settings)
+- `create_inventory_item` (only when enabled in Settings)
 
 All tools except the quantity adjustment are marked read-only. Clients can use that to tell search tools from the stock change, but each client decides for itself when to ask for confirmation.
 
@@ -141,7 +142,7 @@ Common problems:
 - **403 or "forbidden":** sign in with a Home Assistant administrator account. Custom LLM APIs are admin-only.
 - **Home Assistant asks you to give `https://chatgpt.com/oauth/.../client.json` access:** this is expected. ChatGPT identifies itself with that address, and Claude shows a similar one.
 - **Sign-in loops or fails with an address or issuer error:** Home Assistant's External URL (*Settings > System > Network*) must be the same `.ui.nabu.casa` address the client uses. After repeated failed logins your IP can be banned, so check `ip_bans.yaml` in the Home Assistant config folder.
-- **Quantity changes are refused:** writes are off by default. Turn on "Allow inventory quantity changes through MCP" in Settings if agents should adjust stock.
+- **Quantity changes or new products are refused:** writes are off by default. Turn on "Allow inventory changes through MCP" in Settings if agents should adjust stock or create products.
 
 ### What agents can ask
 

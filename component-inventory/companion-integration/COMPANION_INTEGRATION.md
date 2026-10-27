@@ -34,7 +34,7 @@ For OAuth, Home Assistant's **External URL** (Settings > System > Network) must 
 
 ## Compatibility
 
-The integration detects the Home Assistant 2026.9 (Probatio) and 2026.10 (`llm.ToolResult`, tool annotations) changes at runtime, so the same files are meant to work before and after them. The search, get and list tools are declared read-only; the quantity adjustment is declared as a non-destructive write and only works when writes are enabled in the app Settings.
+The integration detects the Home Assistant 2026.9 (Probatio) and 2026.10 (`llm.ToolResult`, tool annotations) changes at runtime, so the same files are meant to work before and after them. The search, get and list tools are declared read-only; the quantity adjustment and product creation are declared as non-destructive writes and only work when writes are enabled in the app Settings.
 
 If Home Assistant starts before the app, the integration shows "Retrying setup" and connects once the app is reachable.
 

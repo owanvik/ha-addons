@@ -9,6 +9,7 @@ from mcp.types import ToolAnnotations
 
 import companion
 import db
+import item_creator
 import settings
 
 
@@ -61,6 +62,41 @@ def adjust_quantity(item_id: int, delta: int, reason: str = 'MCP') -> dict:
         return {'error': 'MCP writes are disabled. Enable them in Component Inventory > Settings.'}
     try:
         return db.adjust_quantity(item_id, delta, reason)
+    except Exception as exc:
+        return {'error': str(exc)}
+
+
+@mcp.tool(annotations=WRITE)
+def create_inventory_item(
+    name: str,
+    quantity: int = 0,
+    category: str = '',
+    subcategory: str = '',
+    manufacturer: str = '',
+    model: str = '',
+    unit: str = 'pcs',
+    location: str = '',
+    description: str = '',
+    applications: list[str] | None = None,
+    tags: list[str] | None = None,
+    specifications: dict[str, str] | None = None,
+    purchase_sources: list[dict[str, str]] | None = None,
+    datasheet_url: str = '',
+    product_url: str = '',
+    notes: str = '',
+    sku: str = '',
+) -> dict:
+    """Create a new product in the inventory. Search first to avoid duplicates, and use an existing category from list_categories when one fits. Disabled unless MCP writes are enabled in the app Settings panel."""
+    if not settings.load_settings().get('allow_mcp_writes', False):
+        return {'error': 'MCP writes are disabled. Enable them in Component Inventory > Settings.'}
+    try:
+        return item_creator.create({
+            'name': name, 'quantity': quantity, 'category': category, 'subcategory': subcategory,
+            'manufacturer': manufacturer, 'model': model, 'unit': unit, 'location': location,
+            'description': description, 'applications': applications, 'tags': tags,
+            'specifications': specifications, 'purchase_sources': purchase_sources,
+            'datasheet_url': datasheet_url, 'product_url': product_url, 'notes': notes, 'sku': sku,
+        })
     except Exception as exc:
         return {'error': str(exc)}
 
@@ -130,6 +166,12 @@ class InventoryRestAPI:
                     'query': q,
                     'items': db.search_items(q, category, in_stock_only, limit),
                 })
+
+            if path == '/inventory-api/items' and method == 'POST':
+                if not settings.load_settings().get('allow_mcp_writes', False):
+                    return await _json_response(send, 403, {'error': 'Inventory writes are disabled'})
+                data = json.loads((await _read_body(receive)).decode() or '{}')
+                return await _json_response(send, 201, item_creator.create(data))
 
             if path == '/inventory-api/items' and method == 'GET':
                 category = query.get('category', [None])[0] or None
