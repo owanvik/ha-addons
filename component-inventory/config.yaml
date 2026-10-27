@@ -1,5 +1,5 @@
 name: "Component Inventory"
-version: "0.5.0"
+version: "0.5.1"
 slug: "component_inventory"
 description: "Electronics product catalog, inventory, import/export and MCP access through Home Assistant or direct LAN"
 url: "https://github.com/owanvik/ha-addons"

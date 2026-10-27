@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1
+- The Home Assistant integration now ships its own icon and logo in `brand/` (`icon.png`, `icon@2x.png`, `logo.png`, `logo@2x.png`), so it no longer shows a placeholder under Devices & services. Needs Home Assistant 2026.3 or later; older versions keep the placeholder.
+- The images are sized as Home Assistant requires (icon 256 and 512 px square, logo 256 and 512 px high) and compressed to about 370 KB in total.
+- After updating the app, Check setup reports the installed integration as outdated. Press **Update integration** in Settings and restart Home Assistant to get the icon.
+- No changes to the database or `settings.json`.
+
 ## 0.5.0
 - **Install integration** button in Settings copies the Home Assistant companion integration into `custom_components/component_inventory`. After a restart of Home Assistant it can be added under Devices & services. The integration is bundled in the app image.
 - **New permission:** the app now has read/write access to Home Assistant's config folder (`homeassistant_config`). The installer writes only inside `custom_components/component_inventory`, refuses symbolic links, requires a folder that looks like Home Assistant's config, and keeps one backup of a replaced copy in `/data/companion_backup`. It never edits `configuration.yaml` or any other file.

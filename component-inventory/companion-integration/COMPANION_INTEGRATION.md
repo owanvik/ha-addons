@@ -38,6 +38,8 @@ The integration detects the Home Assistant 2026.9 (Probatio) and 2026.10 (`llm.T
 
 If Home Assistant starts before the app, the integration shows "Retrying setup" and connects once the app is reachable.
 
+The integration ships its own icon and logo in the `brand/` folder, which Home Assistant 2026.3 or later serves for custom integrations. Older versions show a placeholder icon.
+
 ## Local/direct fallback
 
 The app still exposes its own MCP endpoint on LAN port 8098:
