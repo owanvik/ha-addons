@@ -1,6 +1,7 @@
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
+import companion
 import connect
 import db
 import settings
@@ -134,6 +135,7 @@ async function loadSettings(){const s=await api('api/settings');$('token').value
 async function copyText(t){try{await navigator.clipboard.writeText(t)}catch{const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch{}a.remove();if(!ok){toast('Copy failed, select the text and copy it manually');return}}toast('Copied')}
 function copyEl(id){return copyText($(id).textContent)}
 function copyExport(){return copyText("export COMPONENT_INVENTORY_TOKEN='"+$('token').value+"'")}
+function ago(s){if(s<60)return 'moments ago';const m=Math.round(s/60);if(m<60)return m+(m===1?' minute':' minutes')+' ago';const h=Math.round(m/60);if(h<48)return h+(h===1?' hour':' hours')+' ago';return Math.round(h/24)+' days ago'}
 async function httpStatus(path,opts){try{return (await fetch(new URL(path,window.location.origin),{cache:'no-store',...opts})).status}catch{return 0}}
 function checkRow(state,title,detail){const row=document.createElement('div');row.className='chk';const s=document.createElement('span');s.className='chk-s chk-'+state;s.textContent={ok:'✓',bad:'✗',warn:'!',unk:'?'}[state];s.title={ok:'OK',bad:'Problem',warn:'Warning',unk:'Check manually'}[state];const body=document.createElement('div'),b=document.createElement('b'),d=document.createElement('div');b.textContent=title;d.className='help';d.textContent=detail;body.append(b,d);row.append(s,body);return row}
 async function runChecks(){const btn=$('checkBtn');btn.disabled=true;btn.textContent='Checking...';const rows=[];
@@ -150,7 +152,12 @@ else rows.push(['bad',oauthTitle,d?'This Home Assistant does not support Client 
 catch{rows.push(['unk',oauthTitle,'Could not read the sign-in details from Home Assistant.'])}
 const pub=publicProblem($('haMcpEndpoint').value.trim());rows.push([pub?'bad':'ok','Public https address',pub||'The address above is https and not a local address.']);
 rows.push(/\.ui\.nabu\.casa$/i.test(window.location.hostname)?['ok','Remote access','You opened this page through Nabu Casa, so remote access works.']:['unk','Remote access','Open this page through your Nabu Casa address to confirm that Remote Control is on (Settings > Home Assistant Cloud).']);
-rows.push(['unk','Component Inventory integration','This page cannot see it. In Home Assistant open Settings > Devices & services and check that Component Inventory is listed without errors. "Retrying setup" means the app address or token is wrong, or the app is not running.']);
+const compTitle='Component Inventory integration';
+try{const c=await api('api/companion');
+if(c.rejected!==null&&(c.ok===null||c.rejected<c.ok))rows.push(['bad',compTitle,'Something reached the app '+ago(c.rejected)+' with a wrong token. If that was the integration, remove it in Settings > Devices & services and add it again with the current token from "Local app connection" below.']);
+else if(c.ok!==null)rows.push(['ok',compTitle,'The integration last contacted the app '+ago(c.ok)+(c.health!==null?' and last set itself up '+ago(c.health):'')+'.']);
+else rows.push(['warn',compTitle,'The app has not seen the integration yet. If you just updated the app, reload the integration (Settings > Devices & services > Component Inventory > menu > Reload). If it says "Retrying setup", the app address or token is wrong or the app is not reachable from Home Assistant. If it is not listed, install it first (see DOCS.md).'])}
+catch{rows.push(['unk',compTitle,'Could not read the contact record from the app.'])}
 const bad=rows.filter(r=>r[0]==='bad').length,warn=rows.filter(r=>r[0]==='warn').length;
 $('checkSummary').textContent=bad?bad+(bad>1?' problems':' problem')+' found':warn?'No problems, but check the warning':'Nothing wrong found. Items marked ? must be checked by hand.';
 $('checkRows').replaceChildren(...rows.map(r=>checkRow(...r)));$('checkResults').classList.remove('hidden');btn.disabled=false;btn.textContent='Check setup again'}
@@ -207,6 +214,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._text(200, db.export_json(), 'application/json; charset=utf-8', {'Content-Disposition': 'attachment; filename="component_inventory.json"'})
         if path == 'api/export.csv':
             return self._text(200, db.export_csv(), 'text/csv; charset=utf-8', {'Content-Disposition': 'attachment; filename="component_inventory.csv"'})
+        if path == 'api/companion':
+            return self._json(200, companion.status())
         if path.startswith('api/connect/'):
             return self._connect_file(path.removeprefix('api/connect/'), parse_qs(urlparse(self.path).query))
         if path.startswith('api/items/'):

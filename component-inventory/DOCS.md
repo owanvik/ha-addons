@@ -114,9 +114,10 @@ In the app, open **Settings > Connect Claude, ChatGPT and other clients** and pr
 - the **Model Context Protocol Server** integration exists (the address `/api/mcp/component_inventory` is served),
 - Home Assistant supports the sign-in method Claude and ChatGPT use (Client ID Metadata Documents),
 - the address you will paste is a public https address, and
-- you opened the page through Nabu Casa.
+- you opened the page through Nabu Casa, and
+- the Component Inventory integration has contacted the app. The app records when the integration last reached it (including when it was rejected for a wrong token), so the check can show how long ago that was.
 
-The check sends no login and changes nothing. It cannot see whether the Component Inventory integration is set up, so confirm that under *Settings > Devices & services*.
+The check sends no login and changes nothing in Home Assistant. The contact record is a small file, `/data/companion.json`, that is separate from your inventory and settings. After updating the app, the record starts empty. Reload the integration (*Settings > Devices & services > Component Inventory > menu > Reload*) to record a first contact.
 
 You can also open the MCP address in a normal browser tab. **401 Unauthorized** means the address exists and wants a login. **404** means the MCP Server integration is missing.
 

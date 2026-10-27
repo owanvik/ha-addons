@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.3
+- **Check setup** now shows whether the Home Assistant companion integration has contacted the app, how long ago, and whether it was rejected for a wrong token. The app records this in a new small file, `/data/companion.json`.
+- The record starts empty after updating. Reload the integration in Home Assistant to record a first contact.
+- No changes to the database or `settings.json`: existing inventory, stock movements and the API token are kept when updating.
+
 ## 0.4.2
 - Add a **Check setup** button to Settings that verifies the Home Assistant MCP Server integration, OAuth support for Claude and ChatGPT, the public https address and Nabu Casa access. It sends no login, so it does not trigger failed-login warnings in Home Assistant.
 - Add a troubleshooting section to Settings and DOCS.md, including the common "Couldn't connect" cause when the MCP Server integration is missing.

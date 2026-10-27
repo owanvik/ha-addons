@@ -7,6 +7,7 @@ from mcp.server import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
 from mcp.types import ToolAnnotations
 
+import companion
 import db
 import settings
 
@@ -170,7 +171,10 @@ class BearerAuth:
             headers = {k.decode().lower(): v.decode() for k, v in scope.get('headers', [])}
             supplied = headers.get('authorization', '')
             token = settings.load_settings()['api_token']
-            if not supplied.startswith('Bearer ') or not secrets.compare_digest(supplied[7:], token):
+            valid = supplied.startswith('Bearer ') and secrets.compare_digest(supplied[7:], token)
+            if scope.get('path', '').startswith('/inventory-api/'):
+                companion.record(scope['path'], valid)
+            if not valid:
                 body = b'{"error":"unauthorized"}'
                 await send({
                     'type': 'http.response.start',
