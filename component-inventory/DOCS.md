@@ -55,8 +55,32 @@ Claude and ChatGPT connect from the cloud and sign in with OAuth. They cannot us
 
 `https://YOUR-ID.ui.nabu.casa/api/mcp/component_inventory`
 
-- **Claude:** add a custom connector with the URL, choose **Sign in now**, then **Use Claude's published identity**, and log in to Home Assistant.
-- **ChatGPT:** add a custom MCP server with the URL, set authentication to **OAuth** (client ID `https://chatgpt.com`), and log in to Home Assistant.
+The same guide, with copy buttons and downloadable config files, is in the app under **Settings > Connect Claude, ChatGPT and other clients**.
+
+**ChatGPT** has no file to import, so it is added by URL in the app:
+
+1. Open the plugins page (Settings > Plugins in the desktop app) and choose **Add > Add custom MCP server**. The menu name can differ between ChatGPT versions.
+2. Name it `Component Inventory`, paste the URL under **Connection** and set **Authentication** to **OAuth**. If asked for an OAuth client ID, use `https://chatgpt.com`. Home Assistant does not use a client secret.
+3. Confirm with **I understand and want to continue**, choose **Create as plugin**, then **Continue to Home Assistant** and log in.
+
+Custom MCP servers need a ChatGPT plan with developer mode or custom MCP support. Check your plan if the option is missing.
+
+**Claude** (claude.ai and Claude Desktop) has no file to import for custom connectors either:
+
+1. Open **Customize > Connectors** (Claude Desktop: Settings > Connectors) and choose **Add custom connector**. On Team and Enterprise plans an Owner adds it under **Organization settings > Connectors** and members then click **Connect**.
+2. Name it `Component Inventory` and paste the URL.
+3. Set **Authentication** to **Sign in now** and **OAuth client** to **Use Claude's published identity**, then click **Add**.
+4. Click **Connect**, log in to Home Assistant, and turn the connector on in a chat from the **+** menu > **Connectors**.
+
+**Claude Code and Codex** can use the same URL with an OAuth login:
+
+```bash
+claude mcp add --transport http component-inventory https://YOUR-ID.ui.nabu.casa/api/mcp/component_inventory
+claude mcp login component-inventory
+codex mcp add component_inventory --url https://YOUR-ID.ui.nabu.casa/api/mcp/component_inventory
+```
+
+Settings can also download ready-made config files: `component-inventory.mcp.json` for Claude Code (save it as `.mcp.json` in your project folder) and `component-inventory-codex.toml` for Codex (append it to `~/.codex/config.toml`). The files never contain the API token. For direct LAN access they only refer to the environment variable `COMPONENT_INVENTORY_TOKEN`, which you set yourself; Settings has a button that copies the export command.
 
 Sign in with a Home Assistant administrator account. Home Assistant's **External URL** (Settings > System > Network) must be the Nabu Casa address, otherwise OAuth fails.
 

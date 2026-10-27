@@ -1,6 +1,7 @@
 import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
+import connect
 import db
 import settings
 
@@ -12,6 +13,15 @@ HTML = r'''<!doctype html>
 <title>Component Inventory</title>
 <style>
 :root{color-scheme:light dark;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--bg:#0f172a;--card:#172033;--card2:#111827;--line:#334155;--muted:#94a3b8;--text:#e5e7eb;--accent:#03a9f4;--ok:#4ade80;--warn:#fbbf24}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text)}button,input,select,textarea{font:inherit;color:inherit}.wrap{max-width:1280px;margin:auto;padding:18px}.header{display:flex;justify-content:space-between;align-items:center;gap:12px}.header h2{margin:0}.nav{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.nav button,.btn{border:1px solid var(--line);background:var(--card);padding:9px 12px;border-radius:9px;cursor:pointer}.nav button.active,.btn.primary{background:#0369a1;border-color:#0ea5e9}.btn.danger{border-color:#7f1d1d}.bar{display:grid;grid-template-columns:minmax(250px,1fr) 220px 160px;gap:8px;margin-bottom:14px}.bar input,.bar select,.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);background:var(--card2);padding:9px 10px;border-radius:8px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}.stat .n{font-size:1.65rem;font-weight:750}.muted{color:var(--muted);font-size:.9rem}.product-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.product{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer}.product:hover{border-color:#64748b}.top{display:flex;justify-content:space-between;gap:12px}.name{font-weight:700}.sku{font:12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted)}.qty{font-size:1.15rem;font-weight:750;white-space:nowrap}.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}.chip{background:#243247;border-radius:999px;padding:3px 8px;font-size:.76rem}.purchase{color:#7dd3fc}.hidden{display:none!important}.empty{text-align:center;color:var(--muted);padding:32px}.stock-row{display:grid;grid-template-columns:minmax(260px,1fr) 180px 170px;align-items:center;gap:10px}.stock-actions{display:flex;align-items:center;gap:7px;justify-content:flex-end}.stock-actions button{width:38px}.stock-actions .q{min-width:45px;text-align:center;font-weight:700}.field{margin-bottom:12px}.field label{display:block;font-size:.86rem;color:var(--muted);margin-bottom:5px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.detail-backdrop{position:fixed;inset:0;background:#0009;display:flex;align-items:flex-start;justify-content:center;padding:4vh 16px;z-index:10;overflow:auto}.detail{width:min(900px,100%);background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:18px}.detail-head{display:flex;justify-content:space-between;gap:12px;align-items:start}.detail h2{margin:2px 0}.detail-cols{display:grid;grid-template-columns:1.25fr .75fr;gap:18px}.specs{display:grid;grid-template-columns:180px 1fr;gap:7px 12px;font-size:.9rem}.specs dt{color:var(--muted)}.source{display:grid;grid-template-columns:140px 1fr 150px 48px;gap:7px;margin:7px 0}.source input{border:1px solid var(--line);background:var(--card);padding:8px;border-radius:7px;min-width:0}.section-title{font-weight:700;margin:16px 0 7px}.import-layout{display:grid;grid-template-columns:1fr 1fr;gap:12px}.drop{border:1px dashed #64748b;border-radius:12px;padding:22px;text-align:center;background:var(--card)}.preview{max-height:420px;overflow:auto}.preview-row{display:grid;grid-template-columns:110px 1fr 80px 110px;gap:7px;padding:8px 0;border-bottom:1px solid #283548;font-size:.88rem}.action-create{color:var(--ok)}.action-update,.action-replace{color:#7dd3fc}.action-skip{color:var(--muted)}.action-add_quantity{color:var(--warn)}.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#0b1220;padding:10px;border-radius:8px;overflow:auto;white-space:pre-wrap}.toast{position:fixed;right:18px;bottom:18px;background:#052e16;border:1px solid #166534;color:#dcfce7;padding:10px 14px;border-radius:10px;z-index:20}.settings-grid{display:grid;grid-template-columns:1fr;gap:12px}.switch{display:flex;gap:10px;align-items:center}.switch input{width:20px;height:20px}.actions{display:flex;gap:8px;flex-wrap:wrap}.help{font-size:.85rem;color:var(--muted);line-height:1.4}
+a.btn{text-decoration:none;color:inherit;display:inline-block}
+a.btn:not([href]){opacity:.45;cursor:not-allowed}
+.btn.mini{padding:2px 8px;font-size:.78rem}
+.guide{border-top:1px solid var(--line);margin-top:10px;padding-top:2px}
+.guide summary{cursor:pointer;font-weight:700;padding:8px 0}
+.guide ol{margin:4px 0 8px 20px;padding:0;line-height:1.55}
+.guide li{margin-bottom:6px}
+.guide code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#0b1220;padding:1px 5px;border-radius:5px}
+.warn{border-left:3px solid var(--warn);background:#2b1d08;padding:8px 10px;border-radius:6px;font-size:.85rem;margin:8px 0;line-height:1.4}
 @media(max-width:850px){.bar,.stats,.product-grid,.detail-cols,.grid2,.grid3,.import-layout{grid-template-columns:1fr}.stock-row{grid-template-columns:1fr}.stock-actions{justify-content:flex-start}.source{grid-template-columns:1fr}.preview-row{grid-template-columns:80px 1fr 65px}.preview-row span:last-child{display:none}}
 </style></head>
 <body><div class="wrap">
@@ -32,7 +42,35 @@ HTML = r'''<!doctype html>
 <div id="previewCard" class="card hidden"><div class="top"><div><h3 style="margin:0">Import preview</h3><div class="muted" id="previewSummary"></div></div></div><div id="previewRows" class="preview"></div></div>
 </section>
 
-<section id="settings-panel" class="hidden"><div class="settings-grid"><div class="card"><h3>Home Assistant MCP (recommended)</h3><div class="field"><label>Home Assistant / Nabu Casa MCP endpoint</label><div class="actions"><input id="haMcpEndpoint" readonly style="flex:1"><button class="btn" onclick="copyValue('haMcpEndpoint')">Copy</button></div></div><p class="help">This endpoint is served by Home Assistant itself. When you open this page through Nabu Casa, the field above automatically uses the same public HTTPS origin. No router port forwarding is required. Requires the companion Component Inventory integration and Home Assistant's Model Context Protocol Server integration.</p><div class="code">/api/mcp/component_inventory</div></div><div class="card"><h3>Local app connection</h3><div class="field"><label>Direct LAN MCP endpoint</label><div class="actions"><input id="endpoint" readonly style="flex:1" value="http://HOME_ASSISTANT_IP:8098/mcp"><button class="btn" onclick="copyValue('endpoint')">Copy</button></div></div><div class="field"><label>Local app API token</label><div class="actions"><input id="token" type="password" readonly style="flex:1"><button class="btn" id="showToken" onclick="toggleToken()">Show</button><button class="btn" onclick="copyValue('token')">Copy</button></div></div><p class="help">The companion Home Assistant integration uses this token to access the app locally. External MCP clients using the Home Assistant endpoint authenticate with Home Assistant OAuth or a Home Assistant access token instead.</p><label class="switch"><input id="writes" type="checkbox" onchange="saveWrites()"><span>Allow inventory quantity changes through MCP</span></label><p class="help">Keep this off if coding agents should only search and plan with available parts.</p><button class="btn danger" onclick="rotateToken()">Generate new local API token</button></div><div class="card"><h3>MCP tools</h3><div class="code">search_inventory
+<section id="settings-panel" class="hidden"><div class="settings-grid"><div class="card"><h3>Connect Claude, ChatGPT and other clients</h3>
+<p class="help">Claude and ChatGPT connect from the cloud, so they need your public Home Assistant address (Nabu Casa), not a LAN address. This address is served by Home Assistant itself and needs no router port forwarding. It requires the companion Component Inventory integration and Home Assistant's Model Context Protocol Server integration, and you sign in with a Home Assistant administrator account.</p>
+<div class="field"><label>MCP address (Home Assistant / Nabu Casa)</label><div class="actions"><input id="haMcpEndpoint" style="flex:1" oninput="onEndpointEdit(this)"><button class="btn" onclick="copyValue('haMcpEndpoint')">Copy</button></div></div>
+<div id="urlWarn" class="warn hidden"></div>
+<details class="guide" open><summary>ChatGPT</summary><ol>
+<li>In ChatGPT, open the plugins page (Settings &gt; Plugins in the desktop app) and choose <b>Add &gt; Add custom MCP server</b>. The menu name can differ between ChatGPT versions.</li>
+<li>Set <b>Name</b> to <b>Component Inventory</b>, paste the MCP address above under <b>Connection</b>, and set <b>Authentication</b> to <b>OAuth</b>.</li>
+<li>If ChatGPT asks for an OAuth client ID, use <code>https://chatgpt.com</code> <button class="btn mini" onclick="copyText('https://chatgpt.com')">Copy</button>. Home Assistant does not use a client secret.</li>
+<li>Confirm with <b>I understand and want to continue</b>, choose <b>Create as plugin</b>, then <b>Continue to Home Assistant</b> and log in.</li></ol>
+<p class="help">ChatGPT has no file to import, so the server is added by URL in the app. Custom MCP servers need a ChatGPT plan with developer mode or custom MCP support. OpenAI changes plan availability, so check your plan if the option is missing.</p></details>
+<details class="guide"><summary>Claude (claude.ai and Claude Desktop)</summary><ol>
+<li>Open <b>Customize &gt; Connectors</b> (in Claude Desktop: Settings &gt; Connectors) and choose <b>Add custom connector</b>.</li>
+<li>Name it <b>Component Inventory</b> and paste the MCP address above as the server URL.</li>
+<li>Set <b>Authentication</b> to <b>Sign in now</b> and <b>OAuth client</b> to <b>Use Claude's published identity</b>, then click <b>Add</b>.</li>
+<li>Click <b>Connect</b> and log in to Home Assistant.</li>
+<li>In a chat, open the <b>+</b> menu &gt; <b>Connectors</b> and turn on Component Inventory.</li></ol>
+<p class="help">Claude has no file to import for custom connectors, so it is added by URL. On a Team or Enterprise plan an Owner adds it under <b>Organization settings &gt; Connectors</b> and members then click <b>Connect</b>. The Free plan allows one custom connector.</p></details>
+<details class="guide"><summary>Claude Code and Codex (command line)</summary>
+<div class="field" style="margin-top:8px"><label>Connection</label><select id="connMode" onchange="updateGuide()"><option value="remote">Home Assistant / Nabu Casa, OAuth login (recommended)</option><option value="lan">Direct LAN, bearer token over plain HTTP</option></select></div>
+<div id="lanBox" class="hidden"><div class="field"><label>Direct LAN MCP address</label><input id="endpoint" oninput="onEndpointEdit(this)"></div><p class="help">The client reads the token from the environment variable <code>COMPONENT_INVENTORY_TOKEN</code>. The downloaded files only name that variable and never contain the token. The token travels unencrypted on your local network.</p><div class="actions"><button class="btn" onclick="copyExport()">Copy export command (contains the token)</button></div></div>
+<div id="cliWarn" class="warn hidden"></div>
+<div class="section-title">Claude Code</div>
+<div class="code" id="ccCmd"></div>
+<div class="actions" style="margin-top:8px"><button class="btn" onclick="copyEl('ccCmd')">Copy commands</button><a class="btn" id="ccDownload">Download .mcp.json</a></div>
+<p class="help">Instead of the commands, save the file as <code>.mcp.json</code> in your project folder and approve the server when Claude Code asks. Remote mode then needs <code>/mcp</code> (or <code>claude mcp login component-inventory</code>) to sign in. The LAN command stores the token in Claude Code's own config, so prefer the file to keep it out.</p>
+<div class="section-title">Codex</div>
+<div class="code" id="cxCmd"></div>
+<div class="actions" style="margin-top:8px"><button class="btn" onclick="copyEl('cxCmd')">Copy commands</button><a class="btn" id="cxDownload">Download config snippet</a></div>
+<p class="help">The snippet is a table you append to <code>~/.codex/config.toml</code>.</p></details></div><div class="card"><h3>Local app connection</h3><div class="field"><label>Local app API token</label><div class="actions"><input id="token" type="password" readonly style="flex:1"><button class="btn" id="showToken" onclick="toggleToken()">Show</button><button class="btn" onclick="copyValue('token')">Copy</button></div></div><p class="help">The companion Home Assistant integration uses this token to access the app locally. External MCP clients using the Home Assistant address above authenticate with Home Assistant OAuth instead. The direct LAN endpoint is only for local clients; Nabu Casa does not forward it.</p><label class="switch"><input id="writes" type="checkbox" onchange="saveWrites()"><span>Allow inventory quantity changes through MCP</span></label><p class="help">Keep this off if coding agents should only search and plan with available parts.</p><button class="btn danger" onclick="rotateToken()">Generate new local API token</button></div><div class="card"><h3>MCP tools</h3><div class="code">search_inventory
 get_inventory_item
 get_inventory_item_by_sku
 list_inventory
@@ -71,9 +109,17 @@ async function saveProduct(){const sources=[...document.querySelectorAll('.sourc
 async function readImportFile(){const f=$('importFile').files[0];if(!f)throw new Error('Choose a CSV or JSON file first');importText=await f.text();importFormat=f.name.toLowerCase().endsWith('.json')?'json':'csv';return {text:importText,format:importFormat}}
 async function previewImport(){try{const f=await readImportFile();const mode=$('importMode').value;const data=await api(`api/import/preview?format=${f.format}&mode=${mode}`,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:f.text});$('previewRows').innerHTML=data.rows.map(r=>`<div class="preview-row"><span class="sku">${escapeHtml(r.sku)}</span><span>${escapeHtml(r.name)}</span><span>${r.quantity}</span><span class="action-${r.action}">${r.action.replace('_',' ')}</span></div>`).join('');const actions={};data.rows.forEach(r=>actions[r.action]=(actions[r.action]||0)+1);$('previewSummary').textContent=data.rows.length+' rows - '+Object.entries(actions).map(([k,v])=>v+' '+k.replace('_',' ')).join(', ');$('previewCard').classList.remove('hidden');$('runImport').disabled=false}catch(e){alert(e.message)}}
 async function runImport(){try{if(!importText)await readImportFile();const mode=$('importMode').value;const data=await api(`api/import?format=${importFormat}&mode=${mode}`,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:importText});toast('Import complete');$('previewSummary').textContent='Import complete: '+JSON.stringify(data.result);await load()}catch(e){alert(e.message)}}
-async function loadSettings(){const s=await api('api/settings');$('token').value=s.api_token;$('writes').checked=!!s.allow_mcp_writes;$('haMcpEndpoint').value=window.location.origin+'/api/mcp/component_inventory'}
+const URL_OK=/^https?:\/\/[^\s"'\\]+$/i,LOCAL_HOST=/^https:\/\/(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|[^\/:]+\.local[:\/])/i;
+function onEndpointEdit(el){el.dataset.edited='1';updateGuide()}
+function publicProblem(url){if(!/^https:\/\/[^\s"'\\]+$/i.test(url))return 'Claude and ChatGPT need a public https address. Use your Nabu Casa address, for example https://YOUR-ID.ui.nabu.casa/api/mcp/component_inventory';if(LOCAL_HOST.test(url))return 'This is a local address. Claude and ChatGPT connect from the cloud, so use your public Nabu Casa address, for example https://YOUR-ID.ui.nabu.casa/api/mcp/component_inventory';return ''}
+function showWarn(id,msg){$(id).textContent=msg;$(id).classList.toggle('hidden',!msg)}
+function updateGuide(){const lan=$('connMode').value==='lan',pub=$('haMcpEndpoint').value.trim(),local=$('endpoint').value.trim(),url=lan?local:pub;$('lanBox').classList.toggle('hidden',!lan);showWarn('urlWarn',publicProblem(pub));const bad=!URL_OK.test(url)?'Enter a full http(s) address first.':url.includes('HOME_ASSISTANT_IP')?'Replace HOME_ASSISTANT_IP with the IP address of Home Assistant.':'';showWarn('cliWarn',bad);const q='?mode='+(lan?'lan':'remote')+'&url='+encodeURIComponent(url);[['ccDownload','claude-code'],['cxDownload','codex']].forEach(([id,client])=>{if(bad)$(id).removeAttribute('href');else $(id).href='api/connect/'+client+q});$('ccCmd').textContent=lan?`claude mcp add --transport http component-inventory ${url} --header "Authorization: Bearer $COMPONENT_INVENTORY_TOKEN"`:`claude mcp add --transport http component-inventory ${url}\nclaude mcp login component-inventory`;$('cxCmd').textContent=lan?`# Append to ~/.codex/config.toml\n[mcp_servers.component_inventory]\nurl = "${url}"\nbearer_token_env_var = "COMPONENT_INVENTORY_TOKEN"`:`codex mcp add component_inventory --url ${url}\ncodex mcp login component_inventory`}
+async function loadSettings(){const s=await api('api/settings');$('token').value=s.api_token;$('writes').checked=!!s.allow_mcp_writes;const ha=$('haMcpEndpoint'),lan=$('endpoint');if(!ha.dataset.edited)ha.value=window.location.origin+'/api/mcp/component_inventory';if(!lan.dataset.edited)lan.value=window.location.protocol==='http:'?'http://'+window.location.hostname+':8098/mcp':'http://HOME_ASSISTANT_IP:8098/mcp';updateGuide()}
+async function copyText(t){try{await navigator.clipboard.writeText(t)}catch{const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch{}a.remove();if(!ok){toast('Copy failed, select the text and copy it manually');return}}toast('Copied')}
+function copyEl(id){return copyText($(id).textContent)}
+function copyExport(){return copyText("export COMPONENT_INVENTORY_TOKEN='"+$('token').value+"'")}
 function toggleToken(){const t=$('token');t.type=t.type==='password'?'text':'password';$('showToken').textContent=t.type==='password'?'Show':'Hide'}
-async function copyValue(id){await navigator.clipboard.writeText($(id).value);toast('Copied')}
+function copyValue(id){return copyText($(id).value)}
 async function saveWrites(){await api('api/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({allow_mcp_writes:$('writes').checked})});toast('Settings saved')}
 async function rotateToken(){if(!confirm('Generate a new token? Existing MCP clients will stop working until updated.'))return;const s=await api('api/settings/rotate-token',{method:'POST'});$('token').value=s.api_token;toast('New token generated')}
 $('q').addEventListener('input',render);$('cat').addEventListener('change',render);$('stockFilter').addEventListener('change',render);load();
@@ -125,12 +171,25 @@ class Handler(BaseHTTPRequestHandler):
             return self._text(200, db.export_json(), 'application/json; charset=utf-8', {'Content-Disposition': 'attachment; filename="component_inventory.json"'})
         if path == 'api/export.csv':
             return self._text(200, db.export_csv(), 'text/csv; charset=utf-8', {'Content-Disposition': 'attachment; filename="component_inventory.csv"'})
+        if path.startswith('api/connect/'):
+            return self._connect_file(path.removeprefix('api/connect/'), parse_qs(urlparse(self.path).query))
         if path.startswith('api/items/'):
             parts = path.split('/')
             if len(parts) == 3 and parts[2].isdigit():
                 item = db.get_item(int(parts[2]))
                 return self._json(200 if item else 404, item or {'error': 'Not found'})
         return self._json(404, {'error': 'Not found'})
+
+    def _connect_file(self, client, qs):
+        url = qs.get('url', [''])[0].strip()
+        lan = qs.get('mode', ['remote'])[0] == 'lan'
+        if client not in ('claude-code', 'codex'):
+            return self._json(404, {'error': 'Not found'})
+        if not connect.valid_url(url):
+            return self._json(400, {'error': 'A full http(s) MCP address is required'})
+        if client == 'claude-code':
+            return self._text(200, connect.claude_code_config(url, lan), 'application/json; charset=utf-8', {'Content-Disposition': 'attachment; filename="component-inventory.mcp.json"'})
+        return self._text(200, connect.codex_config(url, lan), 'text/plain; charset=utf-8', {'Content-Disposition': 'attachment; filename="component-inventory-codex.toml"'})
 
     def do_POST(self):
         parsed = urlparse(self.path)

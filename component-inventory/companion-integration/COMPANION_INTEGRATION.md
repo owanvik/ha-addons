@@ -27,6 +27,7 @@ Authentication is handled by Home Assistant, which uses OAuth 2.0 with PKCE and 
 
 - **Claude:** add a custom connector with the URL, choose **Sign in now**, then **Use Claude's published identity**, and log in to Home Assistant.
 - **ChatGPT:** add a custom MCP server with the URL, set authentication to **OAuth** (client ID `https://chatgpt.com`), and log in to Home Assistant.
+- **Step-by-step guide and config files:** see the app's **Settings > Connect Claude, ChatGPT and other clients** and `DOCS.md`.
 - **Other clients:** clients that can send headers may be able to use a Home Assistant long-lived access token as a bearer token. This is standard Home Assistant API authentication, but it is not covered by Home Assistant's MCP Server documentation, so test it first.
 
 For OAuth, Home Assistant's **External URL** (Settings > System > Network) must match the hostname the client uses, normally the `.ui.nabu.casa` address.

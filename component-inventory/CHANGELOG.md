@@ -5,6 +5,9 @@
 - Companion integration: support Home Assistant 2026.9+ (Probatio schemas) and 2026.10+ (`llm.ToolResult`, tool title, integration and annotations) while keeping older versions working.
 - Mark the search/get/list tools as read-only and the quantity adjustment as a non-destructive write, both in the Home Assistant LLM API and on the direct MCP endpoint.
 - Document Nabu Casa remote setup for Claude and ChatGPT and clarify that port 8098 is for local LAN clients only.
+- Add a step-by-step connection guide for ChatGPT, Claude, Claude Code and Codex to Settings, with an editable public address and a warning when the address is local.
+- Add downloadable Claude Code `.mcp.json` and Codex `config.toml` snippets. They never contain the API token; LAN variants only reference `COMPONENT_INVENTORY_TOKEN`.
+- Copy buttons no longer fail silently when the browser blocks clipboard access.
 - No database or settings changes: existing inventory, stock movements and the API token are kept when updating.
 
 ## 0.4.0
