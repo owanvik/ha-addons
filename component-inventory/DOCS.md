@@ -105,7 +105,30 @@ Available tools:
 - `list_categories`
 - `adjust_quantity` (only when enabled in Settings)
 
-All tools except the quantity adjustment are marked read-only, so clients can run them without asking for confirmation.
+All tools except the quantity adjustment are marked read-only. Clients can use that to tell search tools from the stock change, but each client decides for itself when to ask for confirmation.
+
+### Check your setup and troubleshooting
+
+In the app, open **Settings > Connect Claude, ChatGPT and other clients** and press **Check setup**. From the Home Assistant address the page is opened on, it checks that:
+
+- the **Model Context Protocol Server** integration exists (the address `/api/mcp/component_inventory` is served),
+- Home Assistant supports the sign-in method Claude and ChatGPT use (Client ID Metadata Documents),
+- the address you will paste is a public https address, and
+- you opened the page through Nabu Casa.
+
+The check sends no login and changes nothing. It cannot see whether the Component Inventory integration is set up, so confirm that under *Settings > Devices & services*.
+
+You can also open the MCP address in a normal browser tab. **401 Unauthorized** means the address exists and wants a login. **404** means the MCP Server integration is missing.
+
+Common problems:
+
+- **"Couldn't connect" after you log in to Home Assistant:** the **Model Context Protocol Server** integration is usually missing. Add it under *Settings > Devices & services > Add integration*. Do not pick "Model Context Protocol" without "Server", which is the opposite direction.
+- **Connected, but no inventory tools, or an "Unknown LLM API" error:** the Component Inventory integration is not set up. Copy it to `/config/custom_components/component_inventory`, restart Home Assistant and add it under Devices & services.
+- **Component Inventory shows "Retrying setup":** the app address or token you entered is wrong, or the app is not running. Home Assistant retries by itself once the app answers.
+- **403 or "forbidden":** sign in with a Home Assistant administrator account. Custom LLM APIs are admin-only.
+- **Home Assistant asks you to give `https://chatgpt.com/oauth/.../client.json` access:** this is expected. ChatGPT identifies itself with that address, and Claude shows a similar one.
+- **Sign-in loops or fails with an address or issuer error:** Home Assistant's External URL (*Settings > System > Network*) must be the same `.ui.nabu.casa` address the client uses. After repeated failed logins your IP can be banned, so check `ip_bans.yaml` in the Home Assistant config folder.
+- **Quantity changes are refused:** writes are off by default. Turn on "Allow inventory quantity changes through MCP" in Settings if agents should adjust stock.
 
 ### What agents can ask
 

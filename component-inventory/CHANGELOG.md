@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2
+- Add a **Check setup** button to Settings that verifies the Home Assistant MCP Server integration, OAuth support for Claude and ChatGPT, the public https address and Nabu Casa access. It sends no login, so it does not trigger failed-login warnings in Home Assistant.
+- Add a troubleshooting section to Settings and DOCS.md, including the common "Couldn't connect" cause when the MCP Server integration is missing.
+- Docs: stop promising that clients run read-only tools without asking; each client decides.
+- No database or settings changes.
+
 ## 0.4.1
 - Companion integration: retry setup with `ConfigEntryNotReady` when the app is not reachable yet, for example when Home Assistant starts before the app.
 - Companion integration: support Home Assistant 2026.9+ (Probatio schemas) and 2026.10+ (`llm.ToolResult`, tool title, integration and annotations) while keeping older versions working.

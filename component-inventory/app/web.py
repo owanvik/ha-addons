@@ -22,6 +22,10 @@ a.btn:not([href]){opacity:.45;cursor:not-allowed}
 .guide li{margin-bottom:6px}
 .guide code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#0b1220;padding:1px 5px;border-radius:5px}
 .warn{border-left:3px solid var(--warn);background:#2b1d08;padding:8px 10px;border-radius:6px;font-size:.85rem;margin:8px 0;line-height:1.4}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--line)}
+.chk-s{flex:0 0 22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-weight:700;font-size:.85rem;background:var(--card2)}
+.chk-ok{color:var(--ok)}.chk-bad{color:#f87171}.chk-warn{color:var(--warn)}.chk-unk{color:var(--muted)}
+.guide ul{margin:4px 0 8px 20px;padding:0;line-height:1.55}
 @media(max-width:850px){.bar,.stats,.product-grid,.detail-cols,.grid2,.grid3,.import-layout{grid-template-columns:1fr}.stock-row{grid-template-columns:1fr}.stock-actions{justify-content:flex-start}.source{grid-template-columns:1fr}.preview-row{grid-template-columns:80px 1fr 65px}.preview-row span:last-child{display:none}}
 </style></head>
 <body><div class="wrap">
@@ -46,6 +50,9 @@ a.btn:not([href]){opacity:.45;cursor:not-allowed}
 <p class="help">Claude and ChatGPT connect from the cloud, so they need your public Home Assistant address (Nabu Casa), not a LAN address. This address is served by Home Assistant itself and needs no router port forwarding. It requires the companion Component Inventory integration and Home Assistant's Model Context Protocol Server integration, and you sign in with a Home Assistant administrator account.</p>
 <div class="field"><label>MCP address (Home Assistant / Nabu Casa)</label><div class="actions"><input id="haMcpEndpoint" style="flex:1" oninput="onEndpointEdit(this)"><button class="btn" onclick="copyValue('haMcpEndpoint')">Copy</button></div></div>
 <div id="urlWarn" class="warn hidden"></div>
+<div class="actions" style="margin:10px 0"><button class="btn primary" id="checkBtn" onclick="runChecks()">Check setup</button></div>
+<p class="help">Checks what this page can see from Home Assistant before you connect a client. It sends no login and changes nothing.</p>
+<div id="checkResults" class="hidden"><div id="checkSummary" class="section-title"></div><div id="checkRows"></div></div>
 <details class="guide" open><summary>ChatGPT</summary><ol>
 <li>In ChatGPT, open the plugins page (Settings &gt; Plugins in the desktop app) and choose <b>Add &gt; Add custom MCP server</b>. The menu name can differ between ChatGPT versions.</li>
 <li>Set <b>Name</b> to <b>Component Inventory</b>, paste the MCP address above under <b>Connection</b>, and set <b>Authentication</b> to <b>OAuth</b>.</li>
@@ -70,7 +77,16 @@ a.btn:not([href]){opacity:.45;cursor:not-allowed}
 <div class="section-title">Codex</div>
 <div class="code" id="cxCmd"></div>
 <div class="actions" style="margin-top:8px"><button class="btn" onclick="copyEl('cxCmd')">Copy commands</button><a class="btn" id="cxDownload">Download config snippet</a></div>
-<p class="help">The snippet is a table you append to <code>~/.codex/config.toml</code>.</p></details></div><div class="card"><h3>Local app connection</h3><div class="field"><label>Local app API token</label><div class="actions"><input id="token" type="password" readonly style="flex:1"><button class="btn" id="showToken" onclick="toggleToken()">Show</button><button class="btn" onclick="copyValue('token')">Copy</button></div></div><p class="help">The companion Home Assistant integration uses this token to access the app locally. External MCP clients using the Home Assistant address above authenticate with Home Assistant OAuth instead. The direct LAN endpoint is only for local clients; Nabu Casa does not forward it.</p><label class="switch"><input id="writes" type="checkbox" onchange="saveWrites()"><span>Allow inventory quantity changes through MCP</span></label><p class="help">Keep this off if coding agents should only search and plan with available parts.</p><button class="btn danger" onclick="rotateToken()">Generate new local API token</button></div><div class="card"><h3>MCP tools</h3><div class="code">search_inventory
+<p class="help">The snippet is a table you append to <code>~/.codex/config.toml</code>.</p></details>
+<details class="guide"><summary>Troubleshooting</summary><ul>
+<li><b>"Couldn't connect" after you log in to Home Assistant:</b> run <b>Check setup</b>. The usual cause is that the <b>Model Context Protocol Server</b> integration is not added (Settings &gt; Devices &amp; services &gt; Add integration). Do not pick "Model Context Protocol" without "Server".</li>
+<li><b>Quick test:</b> open the MCP address in a normal browser tab. <b>401 Unauthorized</b> is good: the address exists and wants a login. <b>404</b> means the MCP Server integration is missing.</li>
+<li><b>Connected, but no inventory tools or an "Unknown LLM API" error:</b> the Component Inventory integration is not set up. Copy it to <code>/config/custom_components/component_inventory</code>, restart Home Assistant, and add it under Devices &amp; services.</li>
+<li><b>Component Inventory shows "Retrying setup":</b> the app address or token you entered is wrong, or the app is not running. Home Assistant retries by itself once the app answers.</li>
+<li><b>403 or "forbidden":</b> sign in with a Home Assistant administrator account. Custom LLM APIs are admin-only.</li>
+<li><b>Home Assistant asks you to give <code>https://chatgpt.com/oauth/.../client.json</code> access:</b> that is expected. ChatGPT identifies itself with that address. Claude shows a similar address.</li>
+<li><b>Sign-in loops or fails with an address or issuer error:</b> Home Assistant's External URL (Settings &gt; System &gt; Network) must be the same <code>.ui.nabu.casa</code> address the client uses. After repeated failed logins your IP can be banned: check <code>ip_bans.yaml</code> in the Home Assistant config folder.</li>
+<li><b>Quantity changes are refused:</b> writes are off by default. Turn on "Allow inventory quantity changes through MCP" below if agents should adjust stock.</li></ul></details></div><div class="card"><h3>Local app connection</h3><div class="field"><label>Local app API token</label><div class="actions"><input id="token" type="password" readonly style="flex:1"><button class="btn" id="showToken" onclick="toggleToken()">Show</button><button class="btn" onclick="copyValue('token')">Copy</button></div></div><p class="help">The companion Home Assistant integration uses this token to access the app locally. External MCP clients using the Home Assistant address above authenticate with Home Assistant OAuth instead. The direct LAN endpoint is only for local clients; Nabu Casa does not forward it.</p><label class="switch"><input id="writes" type="checkbox" onchange="saveWrites()"><span>Allow inventory quantity changes through MCP</span></label><p class="help">Keep this off if coding agents should only search and plan with available parts.</p><button class="btn danger" onclick="rotateToken()">Generate new local API token</button></div><div class="card"><h3>MCP tools</h3><div class="code">search_inventory
 get_inventory_item
 get_inventory_item_by_sku
 list_inventory
@@ -118,6 +134,26 @@ async function loadSettings(){const s=await api('api/settings');$('token').value
 async function copyText(t){try{await navigator.clipboard.writeText(t)}catch{const a=document.createElement('textarea');a.value=t;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();let ok=false;try{ok=document.execCommand('copy')}catch{}a.remove();if(!ok){toast('Copy failed, select the text and copy it manually');return}}toast('Copied')}
 function copyEl(id){return copyText($(id).textContent)}
 function copyExport(){return copyText("export COMPONENT_INVENTORY_TOKEN='"+$('token').value+"'")}
+async function httpStatus(path,opts){try{return (await fetch(new URL(path,window.location.origin),{cache:'no-store',...opts})).status}catch{return 0}}
+function checkRow(state,title,detail){const row=document.createElement('div');row.className='chk';const s=document.createElement('span');s.className='chk-s chk-'+state;s.textContent={ok:'✓',bad:'✗',warn:'!',unk:'?'}[state];s.title={ok:'OK',bad:'Problem',warn:'Warning',unk:'Check manually'}[state];const body=document.createElement('div'),b=document.createElement('b'),d=document.createElement('div');b.textContent=title;d.className='help';d.textContent=detail;body.append(b,d);row.append(s,body);return row}
+async function runChecks(){const btn=$('checkBtn');btn.disabled=true;btn.textContent='Checking...';const rows=[];
+// OPTIONS never needs a login: 404 means the route does not exist, anything else means it does (this avoids 401s that Home Assistant logs as failed logins)
+const perApi=await httpStatus('/api/mcp/component_inventory',{method:'OPTIONS'}),generic=await httpStatus('/api/mcp',{method:'OPTIONS'}),mcpTitle='Home Assistant MCP Server integration';
+if(perApi===0||generic===0)rows.push(['unk',mcpTitle,'Could not reach Home Assistant from this page.']);
+else if(perApi!==404)rows.push(['ok',mcpTitle,'Found. Clients can use /api/mcp/component_inventory.']);
+else if(generic!==404)rows.push(['warn',mcpTitle,'The MCP Server integration is installed, but this Home Assistant version has no per-API addresses (/api/mcp/component_inventory returns 404). Update Home Assistant. Until then /api/mcp works if "Expose all LLM APIs" is on.']);
+else rows.push(['bad',mcpTitle,'Not found (HTTP 404). In Home Assistant open Settings > Devices & services > Add integration and add "Model Context Protocol Server" (not "Model Context Protocol"). Then run this check again.']);
+const oauthTitle='Sign-in for Claude and ChatGPT (OAuth)';
+try{const r=await fetch(new URL('/.well-known/oauth-authorization-server',window.location.origin),{cache:'no-store'});const d=r.ok?await r.json():null;
+if(d&&d.client_id_metadata_document_supported)rows.push(['ok',oauthTitle,'Home Assistant accepts the client details that Claude and ChatGPT send.']);
+else rows.push(['bad',oauthTitle,d?'This Home Assistant does not support Client ID Metadata Documents, which Claude and ChatGPT use. Update Home Assistant.':'Not available (HTTP '+r.status+'). Update Home Assistant.'])}
+catch{rows.push(['unk',oauthTitle,'Could not read the sign-in details from Home Assistant.'])}
+const pub=publicProblem($('haMcpEndpoint').value.trim());rows.push([pub?'bad':'ok','Public https address',pub||'The address above is https and not a local address.']);
+rows.push(/\.ui\.nabu\.casa$/i.test(window.location.hostname)?['ok','Remote access','You opened this page through Nabu Casa, so remote access works.']:['unk','Remote access','Open this page through your Nabu Casa address to confirm that Remote Control is on (Settings > Home Assistant Cloud).']);
+rows.push(['unk','Component Inventory integration','This page cannot see it. In Home Assistant open Settings > Devices & services and check that Component Inventory is listed without errors. "Retrying setup" means the app address or token is wrong, or the app is not running.']);
+const bad=rows.filter(r=>r[0]==='bad').length,warn=rows.filter(r=>r[0]==='warn').length;
+$('checkSummary').textContent=bad?bad+(bad>1?' problems':' problem')+' found':warn?'No problems, but check the warning':'Nothing wrong found. Items marked ? must be checked by hand.';
+$('checkRows').replaceChildren(...rows.map(r=>checkRow(...r)));$('checkResults').classList.remove('hidden');btn.disabled=false;btn.textContent='Check setup again'}
 function toggleToken(){const t=$('token');t.type=t.type==='password'?'text':'password';$('showToken').textContent=t.type==='password'?'Show':'Hide'}
 function copyValue(id){return copyText($(id).value)}
 async function saveWrites(){await api('api/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({allow_mcp_writes:$('writes').checked})});toast('Settings saved')}
